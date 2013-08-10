@@ -22,11 +22,11 @@
 #include <event2/event.h>
 #include <event2/event_struct.h>
 
-static struct config {
+struct config {
   char* world_path;
   char** format;
   int data_wd;
-} global_config;
+};
 
 int parse_config(char* filename);
 

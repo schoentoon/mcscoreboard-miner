@@ -30,7 +30,7 @@ void nbt_file_changed_cb(struct bufferevent* bev, void* args) {
   while ((numRead = bufferevent_read(bev, buf, BUF_LEN))) {
     struct inotify_event *event = (struct inotify_event*) buf;
     if (event->len > 0) {
-      DEBUG(255, "%s changed!\n", event->name);
+      DEBUG(255, "%s changed!", event->name);
     }
   };
 };

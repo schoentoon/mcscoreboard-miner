@@ -29,6 +29,8 @@
 
 #include <event2/bufferevent.h>
 
+static struct config global_config;
+
 int parse_config(char* filename) {
   FILE* f = fopen(filename, "r");
   if (!f) {
