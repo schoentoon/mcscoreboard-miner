@@ -15,21 +15,22 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#include "filereader.h"
 
-#include <event2/dns.h>
-#include <event2/event.h>
-#include <event2/event_struct.h>
+#include "debug.h"
 
-static struct config {
-  char* world_path;
-  char** format;
-  int data_wd;
-} global_config;
+#include <limits.h>
+#include <sys/inotify.h>
 
-int parse_config(char* filename);
+#define BUF_LEN (sizeof(struct inotify_event) + NAME_MAX + 1)
 
-int dispatch_config(struct event_base* base);
-
-#endif //_CONFIG_H
+void nbt_file_changed_cb(struct bufferevent* bev, void* args) {
+  char buf[BUF_LEN];
+  size_t numRead;
+  while ((numRead = bufferevent_read(bev, buf, BUF_LEN))) {
+    struct inotify_event *event = (struct inotify_event*) buf;
+    if (event->len > 0) {
+      DEBUG(255, "%s changed!\n", event->name);
+    }
+  };
+};

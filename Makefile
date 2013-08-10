@@ -1,9 +1,9 @@
 CFLAGS := $(CFLAGS) -Wall -O2 -mtune=native -g
 INC    := -Iinclude $(INC)
-LFLAGS :=
+LFLAGS := -levent
 CC     := gcc
 BINARY := mcscoreboard-miner
-DEPS   := build/main.o build/debug.o build/config.o
+DEPS   := build/main.o build/debug.o build/config.o build/filereader.o
 
 .PHONY: all clean install
 
@@ -20,6 +20,9 @@ build/debug.o: src/debug.c include/debug.h
 
 build/config.o: src/config.c include/config.h
 	$(CC) $(CFLAGS) $(INC) -c -o build/config.o src/config.c
+
+build/filereader.o: src/filereader.c include/filereader.h
+	$(CC) $(CFLAGS) $(INC) -c -o build/filereader.o src/filereader.c
 
 bin/$(BINARY): $(DEPS)
 	$(CC) $(CFLAGS) $(INC) -o bin/$(BINARY) $(DEPS) $(LFLAGS)

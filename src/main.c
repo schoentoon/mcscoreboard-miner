@@ -25,6 +25,8 @@
 #include <signal.h>
 #include <unistd.h>
 
+#include <event.h>
+
 static const struct option g_LongOpts[] = {
   { "help",       no_argument,       0, 'h' },
   { "debug",      optional_argument, 0, 'D' },
@@ -64,5 +66,10 @@ int main(int argc, char** argv) {
       break;
     }
   }
+  struct event_base* event_base = event_base_new();
+  if (dispatch_config(event_base) == 0)
+    while (event_base_dispatch(event_base) == 0);
+  else
+    return 1;
   return 0;
 };

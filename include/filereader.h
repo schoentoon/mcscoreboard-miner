@@ -15,21 +15,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CONFIG_H
-#define _CONFIG_H
+#ifndef _FILE_READER_H
+#define _FILE_READER_H
 
-#include <event2/dns.h>
-#include <event2/event.h>
-#include <event2/event_struct.h>
+#include <event2/bufferevent.h>
 
-static struct config {
-  char* world_path;
-  char** format;
-  int data_wd;
-} global_config;
+void nbt_file_changed_cb(struct bufferevent* bev, void* args);
 
-int parse_config(char* filename);
-
-int dispatch_config(struct event_base* base);
-
-#endif //_CONFIG_H
+#endif //_FILE_READER_H

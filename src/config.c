@@ -17,16 +17,17 @@
 
 #include "config.h"
 
+#include "filereader.h"
+
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <sys/stat.h>
+#include <sys/inotify.h>
 
-static struct config {
-  char* world_path;
-  char** format;
-} global_config;
+#include <event2/bufferevent.h>
 
 int parse_config(char* filename) {
   FILE* f = fopen(filename, "r");
@@ -46,6 +47,9 @@ int parse_config(char* filename) {
     if (sscanf(linebuffer, "%[a-z_] = %[^\t\n]", key, value) == 2) {
       if (strcmp(key, "worldpath") == 0) {
         free(global_config.world_path);
+        size_t slen = strlen(value);
+        if (value[slen] == '/')
+          value[slen] = '\0';
         global_config.world_path = strdup(value);
       } else if (strcmp(key, "format") == 0) {
         if (global_config.format == NULL) {
@@ -64,4 +68,29 @@ int parse_config(char* filename) {
     }
   }
   return line_count;
+};
+
+int dispatch_config(struct event_base* base) {
+  int inotifyfd = inotify_init();
+  if (inotifyfd == -1)
+    return 1;
+  struct bufferevent *bufferevent = bufferevent_socket_new(base, inotifyfd, 0);
+  bufferevent_setcb(bufferevent, nbt_file_changed_cb, NULL, NULL, &global_config);
+  bufferevent_enable(bufferevent, EV_READ);
+  char pathbuf[strlen(global_config.world_path) + 32];
+  if (snprintf(pathbuf, sizeof(pathbuf), "%s/data", global_config.world_path)) {
+    struct stat sb;
+    if (stat(pathbuf, &sb) == 0 && S_ISDIR(sb.st_mode)) {
+      int wd = inotify_add_watch(inotifyfd, pathbuf, IN_CLOSE_WRITE);
+      if (wd == -1) {
+        fprintf(stderr, "There was an error adding '%s' to the file observer, error code %d.\n", pathbuf, wd);
+        return 1;
+      }
+      global_config.data_wd = wd;
+    } else {
+      fprintf(stderr, "There was an error monitoring '%s', error: '%s'\n", pathbuf, strerror(errno));
+      return 1;
+    }
+  }
+  return 0;
 };
