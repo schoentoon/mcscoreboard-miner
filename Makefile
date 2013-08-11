@@ -1,4 +1,5 @@
-CFLAGS := $(CFLAGS) -Wall -O2 -mtune=native -g
+CFLAGS := $(CFLAGS) -Wall -O2 -mtune=native -std=c99 -g
+DEFINES:= -D_GNU_SOURCE -D_XOPEN_SOURCE=500
 INC    := -IcNBT -Iinclude $(INC)
 LFLAGS := -LcNBT -lnbt -levent -lz
 CC     := gcc
@@ -16,19 +17,19 @@ libnbt:
 	$(MAKE) -C cNBT libnbt.a
 
 build/main.o: src/main.c
-	$(CC) $(CFLAGS) $(INC) -c -o build/main.o src/main.c
+	$(CC) $(CFLAGS) $(DEFINES) $(INC) -c -o build/main.o src/main.c
 
 build/debug.o: src/debug.c include/debug.h
-	$(CC) $(CFLAGS) $(INC) -c -o build/debug.o src/debug.c
+	$(CC) $(CFLAGS) $(DEFINES) $(INC) -c -o build/debug.o src/debug.c
 
 build/config.o: src/config.c include/config.h
-	$(CC) $(CFLAGS) $(INC) -c -o build/config.o src/config.c
+	$(CC) $(CFLAGS) $(DEFINES) $(INC) -c -o build/config.o src/config.c
 
 build/filereader.o: src/filereader.c include/filereader.h
-	$(CC) $(CFLAGS) $(INC) -c -o build/filereader.o src/filereader.c
+	$(CC) $(CFLAGS) $(DEFINES) $(INC) -c -o build/filereader.o src/filereader.c
 
 build/file_processors.o: src/file_processors.c include/file_processors.h
-	$(CC) $(CFLAGS) $(INC) -c -o build/file_processors.o src/file_processors.c
+	$(CC) $(CFLAGS) $(DEFINES) $(INC) -c -o build/file_processors.o src/file_processors.c
 
 bin/$(BINARY): $(DEPS)
 	$(CC) $(CFLAGS) $(INC) -o bin/$(BINARY) $(DEPS) $(LFLAGS)

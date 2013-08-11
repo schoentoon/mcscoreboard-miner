@@ -21,9 +21,9 @@
 #include "config.h"
 #include "file_processors.h"
 
+#include <string.h>
 #include <limits.h>
 #include <sys/inotify.h>
-#include <string.h>
 
 #define BUF_LEN (sizeof(struct inotify_event) + NAME_MAX + 1)
 

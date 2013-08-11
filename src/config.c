@@ -21,9 +21,10 @@
 
 #include <errno.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 #include <sys/inotify.h>
 
