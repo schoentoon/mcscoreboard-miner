@@ -1,9 +1,9 @@
 CFLAGS := $(CFLAGS) -Wall -O2 -mtune=native -g
 INC    := -IcNBT -Iinclude $(INC)
-LFLAGS := -LcNBT -lnbt -levent
+LFLAGS := -LcNBT -lnbt -levent -lz
 CC     := gcc
 BINARY := mcscoreboard-miner
-DEPS   := build/main.o build/debug.o build/config.o build/filereader.o
+DEPS   := build/main.o build/debug.o build/config.o build/filereader.o build/file_processors.o
 
 .PHONY: all clean install libnbt clang
 
@@ -26,6 +26,9 @@ build/config.o: src/config.c include/config.h
 
 build/filereader.o: src/filereader.c include/filereader.h
 	$(CC) $(CFLAGS) $(INC) -c -o build/filereader.o src/filereader.c
+
+build/file_processors.o: src/file_processors.c include/file_processors.h
+	$(CC) $(CFLAGS) $(INC) -c -o build/file_processors.o src/file_processors.c
 
 bin/$(BINARY): $(DEPS)
 	$(CC) $(CFLAGS) $(INC) -o bin/$(BINARY) $(DEPS) $(LFLAGS)
