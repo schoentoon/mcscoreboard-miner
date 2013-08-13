@@ -33,7 +33,6 @@ void process_scoreboard_data(struct config* config) {
   char pathbuf[strlen(config->world_path) + 64];
   if (snprintf(pathbuf, sizeof(pathbuf), "%s/data/scoreboard.dat", config->world_path)) {
     nbt_node* nbt = nbt_parse_path(pathbuf);
-    DEBUG(255, "nbt = %p;", nbt);
     if (errno == NBT_OK) {
       static const char* PLAYERSCORES = "PlayerScores";
       nbt_node* scores = nbt_find_by_name(nbt, PLAYERSCORES);
@@ -41,13 +40,11 @@ void process_scoreboard_data(struct config* config) {
         struct list_head* pos;
         list_for_each(pos, &scores->payload.tag_list->entry) {
           const struct nbt_list* entry = list_entry(pos, const struct nbt_list, entry);
-          DEBUG(255, "entry = %p;", entry);
           size_t i;
           for (i = 0; config->format[i]; i++)
             print_objective_score(entry->data, config->format[0]);
         }
       }
-      DEBUG(255, "nbt = %p;", nbt);
       nbt_free(nbt);
     }
   }
@@ -66,8 +63,9 @@ int string_startsWith(char* line, char* start) {
 };
 
 #define APPEND(/*char* */ str) \
-  while (*str && buf < end) \
-    *buf++ = *str++;
+  char* s = str; \
+  while (*s && buf < end) \
+    *buf++ = *s++;
 
 #define DEFINE_TAG(str) \
   static char* str = #str; \

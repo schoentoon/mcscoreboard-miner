@@ -14,7 +14,7 @@ build:
 	-mkdir -p build bin
 
 libnbt:
-	$(MAKE) -C cNBT libnbt.a
+	$(MAKE) -C cNBT libnbt.a CC=$(CC)
 
 build/main.o: src/main.c
 	$(CC) $(CFLAGS) $(DEFINES) $(INC) -c -o build/main.o src/main.c
@@ -39,6 +39,7 @@ install:
 
 clean:
 	rm -rfv build bin
+	$(MAKE) -C cNBT clean
 
 clang:
 	$(MAKE) CC=clang

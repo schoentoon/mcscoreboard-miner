@@ -8,7 +8,12 @@
 
 CFLAGS=-g -Wall -Wextra -std=c99 -pedantic -fPIC
 
+.PHONY: clean
+
 all: nbtreader check
+
+clean:
+	rm -rfv *.o *.a
 
 nbtreader: main.o libnbt.a
 	$(CC) $(CFLAGS) main.o -L. -lnbt -lz -o nbtreader
