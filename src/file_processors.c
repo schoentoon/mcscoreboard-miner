@@ -26,47 +26,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct objective_score {
-  int score;
-  char* name;
-  char* objective;
-};
-
-void print_objective_score(struct objective_score* score, char* format);
+void print_objective_score(nbt_node* nbt, char* format);
 
 void process_scoreboard_data(struct config* config) {
   DEBUG(255, "process_scoreboard_data(%p);", config);
   char pathbuf[strlen(config->world_path) + 64];
   if (snprintf(pathbuf, sizeof(pathbuf), "%s/data/scoreboard.dat", config->world_path)) {
-    nbt_node* node = nbt_parse_path(pathbuf);
+    nbt_node* nbt = nbt_parse_path(pathbuf);
+    DEBUG(255, "nbt = %p;", nbt);
     if (errno == NBT_OK) {
       static const char* PLAYERSCORES = "PlayerScores";
-      nbt_node* scores = nbt_find_by_name(node, PLAYERSCORES);
-      if (scores) {
+      nbt_node* scores = nbt_find_by_name(nbt, PLAYERSCORES);
+      if (scores && scores->type == TAG_LIST) {
         struct list_head* pos;
         list_for_each(pos, &scores->payload.tag_list->entry) {
           const struct nbt_list* entry = list_entry(pos, const struct nbt_list, entry);
           DEBUG(255, "entry = %p;", entry);
-          static const char* NAME = "Name";
-          static const char* SCORE = "Score";
-          static const char* OBJECTIVE = "Objective";
-          nbt_node* name = nbt_find_by_name(entry->data, NAME);
-          nbt_node* score = nbt_find_by_name(entry->data, SCORE);
-          nbt_node* objective = nbt_find_by_name(entry->data, OBJECTIVE);
-          if (name && name->type == TAG_STRING
-            && score && score->type == TAG_INT
-            && objective && objective->type == TAG_STRING) {
-            struct objective_score wrapped_score;
-            wrapped_score.score = score->payload.tag_int;
-            wrapped_score.name = name->payload.tag_string;
-            wrapped_score.objective = objective->payload.tag_string;
-            size_t i;
-            for (i = 0; config->format[i]; i++)
-              print_objective_score(&wrapped_score, config->format[0]);
-          }
+          size_t i;
+          for (i = 0; config->format[i]; i++)
+            print_objective_score(entry->data, config->format[0]);
         }
       }
-      nbt_free(node);
+      DEBUG(255, "nbt = %p;", nbt);
+      nbt_free(nbt);
     }
   }
 };
@@ -87,7 +69,24 @@ int string_startsWith(char* line, char* start) {
   while (*str && buf < end) \
     *buf++ = *str++;
 
-void print_objective_score(struct objective_score* score, char* format) {
+#define DEFINE_TAG(str) \
+  static char* str = #str; \
+  nbt_node* nbt_##str = NULL;
+
+inline nbt_node* find_nbt_node(nbt_node** cached, nbt_node* nbt, char* string) {
+  if (*cached)
+    return *cached;
+  *cached = nbt_find_by_name(nbt, string);
+  return *cached;
+}
+
+#define FIND_NBT_NODE(str, nbt_name) \
+  find_nbt_node(&nbt_##str, nbt, #nbt_name);
+
+void print_objective_score(nbt_node* nbt, char* format) {
+  char* dump = nbt_dump_ascii(nbt);
+  fprintf(stderr, "%s\n", dump);
+  free(dump);
   char b[BUFSIZ];
   char* buf = b;
   char* s = buf;
@@ -96,20 +95,29 @@ void print_objective_score(struct objective_score* score, char* format) {
   for (f = format; *f != '\0'; f++) {
     if (*f == '%') {
       f++;
-      static char* NAME = "name";
-      static char* OBJECTIVE = "objective";
-      static char* SCORE = "score";
-      if (string_startsWith(f, NAME)) {
-        APPEND(score->name);
-        f += 3;
-      } else if (string_startsWith(f, OBJECTIVE)) {
-        APPEND(score->objective);
-        f += 8;
-      } else if (string_startsWith(f, SCORE)) {
-        snprintf(buf, end - buf, "%d", score->score);
-        while (*buf != '\0')
-          buf++;
-        f += 4;
+      DEFINE_TAG(name);
+      DEFINE_TAG(objective);
+      DEFINE_TAG(score);
+      if (string_startsWith(f, name)) {
+        nbt_node* tmp = FIND_NBT_NODE(name, Name);
+        if (tmp && tmp->type == TAG_STRING) {
+          APPEND(tmp->payload.tag_string);
+          f += 3;
+        }
+      } else if (string_startsWith(f, objective)) {
+        nbt_node* tmp = FIND_NBT_NODE(objective, Objective);
+        if (tmp && tmp->type == TAG_STRING) {
+          APPEND(tmp->payload.tag_string);
+          f += 8;
+        }
+      } else if (string_startsWith(f, score)) {
+        nbt_node* tmp = FIND_NBT_NODE(score, Score);
+        if (tmp && tmp->type == TAG_INT) {
+          snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
+          while (*buf != '\0')
+            buf++;
+          f += 4;
+        }
       }
     } else if (buf < end) {
       if (*f == '\\') {
