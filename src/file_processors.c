@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void print_objective_score(nbt_node* nbt, char* format);
+void print_objective_score(nbt_node* nbt, char** format);
 
 void process_scoreboard_data(struct config* config) {
   DEBUG(255, "process_scoreboard_data(%p);", config);
@@ -40,9 +40,7 @@ void process_scoreboard_data(struct config* config) {
         struct list_head* pos;
         list_for_each(pos, &scores->payload.tag_list->entry) {
           const struct nbt_list* entry = list_entry(pos, const struct nbt_list, entry);
-          size_t i;
-          for (i = 0; config->format[i]; i++)
-            print_objective_score(entry->data, config->format[0]);
+          print_objective_score(entry->data, config->format);
         }
       }
       nbt_free(nbt);
@@ -81,63 +79,66 @@ inline nbt_node* find_nbt_node(nbt_node** cached, nbt_node* nbt, char* string) {
 #define FIND_NBT_NODE(str, nbt_name) \
   find_nbt_node(&nbt_##str, nbt, #nbt_name);
 
-void print_objective_score(nbt_node* nbt, char* format) {
+void print_objective_score(nbt_node* nbt, char** formats) {
   char* dump = nbt_dump_ascii(nbt);
   fprintf(stderr, "%s\n", dump);
   free(dump);
-  char b[BUFSIZ];
-  char* buf = b;
-  char* s = buf;
-  char* end = s + sizeof(b);
-  char* f;
-  for (f = format; *f != '\0'; f++) {
-    if (*f == '%') {
-      f++;
-      DEFINE_TAG(name);
-      DEFINE_TAG(objective);
-      DEFINE_TAG(score);
-      if (string_startsWith(f, name)) {
-        nbt_node* tmp = FIND_NBT_NODE(name, Name);
-        if (tmp && tmp->type == TAG_STRING) {
-          APPEND(tmp->payload.tag_string);
-          f += 3;
+  DEFINE_TAG(name);
+  DEFINE_TAG(objective);
+  DEFINE_TAG(score);
+  size_t i;
+  for (i = 0; formats[i]; i++) {
+    char b[BUFSIZ];
+    char* buf = b;
+    char* s = buf;
+    char* end = s + sizeof(b);
+    char* f;
+    for (f = formats[i]; *f != '\0'; f++) {
+      if (*f == '%') {
+        f++;
+        if (string_startsWith(f, name)) {
+          nbt_node* tmp = FIND_NBT_NODE(name, Name);
+          if (tmp && tmp->type == TAG_STRING) {
+            APPEND(tmp->payload.tag_string);
+            f += 3;
+          }
+        } else if (string_startsWith(f, objective)) {
+          nbt_node* tmp = FIND_NBT_NODE(objective, Objective);
+          if (tmp && tmp->type == TAG_STRING) {
+            APPEND(tmp->payload.tag_string);
+            f += 8;
+          }
+        } else if (string_startsWith(f, score)) {
+          nbt_node* tmp = FIND_NBT_NODE(score, Score);
+          if (tmp && tmp->type == TAG_INT) {
+            snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
+            while (*buf != '\0')
+              buf++;
+            f += 4;
+          }
         }
-      } else if (string_startsWith(f, objective)) {
-        nbt_node* tmp = FIND_NBT_NODE(objective, Objective);
-        if (tmp && tmp->type == TAG_STRING) {
-          APPEND(tmp->payload.tag_string);
-          f += 8;
-        }
-      } else if (string_startsWith(f, score)) {
-        nbt_node* tmp = FIND_NBT_NODE(score, Score);
-        if (tmp && tmp->type == TAG_INT) {
-          snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
-          while (*buf != '\0')
-            buf++;
-          f += 4;
-        }
-      }
-    } else if (buf < end) {
-      if (*f == '\\') {
-        switch (*(++f)) {
-        case 'n':
-          *buf++ = '\n';
-          break;
-        case 'r':
-          *buf++ = '\r';
-          break;
-        case 't':
-          *buf++ = '\t';
-          break;
-        default:
-          *buf++ = '\\';
+      } else if (buf < end) {
+        if (*f == '\\') {
+          switch (*(++f)) {
+          case 'n':
+            *buf++ = '\n';
+            break;
+          case 'r':
+            *buf++ = '\r';
+            break;
+          case 't':
+            *buf++ = '\t';
+            break;
+          default:
+            *buf++ = '\\';
+            *buf++ = *f;
+            break;
+          }
+        } else
           *buf++ = *f;
-          break;
-        }
-      } else
-        *buf++ = *f;
+      }
     }
+    *buf = '\0';
+    printf("%s", b);
   }
-  *buf = '\0';
-  printf("%s", b);
 };
