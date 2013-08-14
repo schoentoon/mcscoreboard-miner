@@ -80,9 +80,6 @@ inline nbt_node* find_nbt_node(nbt_node** cached, nbt_node* nbt, char* string) {
   find_nbt_node(&nbt_##str, nbt, #nbt_name);
 
 void print_objective_score(nbt_node* nbt, char** formats) {
-  char* dump = nbt_dump_ascii(nbt);
-  fprintf(stderr, "%s\n", dump);
-  free(dump);
   DEFINE_TAG(name);
   DEFINE_TAG(objective);
   DEFINE_TAG(score);
