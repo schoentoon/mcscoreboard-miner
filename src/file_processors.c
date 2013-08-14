@@ -61,9 +61,11 @@ int string_startsWith(char* line, char* start) {
 };
 
 #define APPEND(/*char* */ str) \
-  char* s = str; \
-  while (*s && buf < end) \
-    *buf++ = *s++;
+  { \
+    char* s = str; \
+    while (*s && buf < end) \
+      *buf++ = *s++; \
+  }
 
 #define DEFINE_TAG(str) \
   static char* str = #str; \
@@ -87,8 +89,7 @@ void print_objective_score(nbt_node* nbt, char** formats) {
   for (i = 0; formats[i]; i++) {
     char b[BUFSIZ];
     char* buf = b;
-    char* s = buf;
-    char* end = s + sizeof(b);
+    char* end = buf + sizeof(b);
     char* f;
     for (f = formats[i]; *f != '\0'; f++) {
       if (*f == '%') {
