@@ -39,7 +39,8 @@ void nbt_file_changed_cb(struct bufferevent* bev, void* args) {
         static const char* SCOREBOARD_DAT = "scoreboard.dat";
         if (strcmp(event->name, SCOREBOARD_DAT) == 0)
           process_scoreboard_data(config);
-      }
+      } else if (event->wd == config->players_wd)
+        process_player_data(config, event->name);
     }
   };
 };

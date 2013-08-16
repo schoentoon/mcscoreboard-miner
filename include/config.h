@@ -24,8 +24,10 @@
 
 struct config {
   char* world_path;
-  char** format;
+  char** scoreboard_format;
+  char** players_format;
   int data_wd;
+  int players_wd;
 };
 
 int parse_config(char* filename);

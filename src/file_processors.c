@@ -40,9 +40,23 @@ void process_scoreboard_data(struct config* config) {
         struct list_head* pos;
         list_for_each(pos, &scores->payload.tag_list->entry) {
           const struct nbt_list* entry = list_entry(pos, const struct nbt_list, entry);
-          print_objective_score(entry->data, config->format);
+          print_objective_score(entry->data, config->scoreboard_format);
         }
       }
+      nbt_free(nbt);
+    }
+  }
+};
+
+void process_player_data(struct config* config, char* player_file) {
+  DEBUG(255, "process_player_data(%p, %s);", config, player_file);
+  char pathbuf[strlen(config->world_path) + 64];
+  if (snprintf(pathbuf, sizeof(pathbuf), "%s/players/%s", config->world_path, player_file)) {
+    nbt_node* nbt = nbt_parse_path(pathbuf);
+    if (errno == NBT_OK) {
+      char* dump = nbt_dump_ascii(nbt);
+      DEBUG(255, "%s", dump);
+      free(dump);
       nbt_free(nbt);
     }
   }

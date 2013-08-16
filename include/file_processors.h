@@ -22,4 +22,6 @@
 
 void process_scoreboard_data(struct config* config);
 
+void process_player_data(struct config* config, char* player_file);
+
 #endif //_FILE_PROCESSORS_H

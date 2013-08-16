@@ -54,17 +54,29 @@ int parse_config(char* filename) {
         if (value[slen] == '/')
           value[slen] = '\0';
         global_config.world_path = strdup(value);
-      } else if (strcmp(key, "format") == 0) {
-        if (global_config.format == NULL) {
-          global_config.format = malloc(sizeof(char*) * 2);
-          bzero(global_config.format, sizeof(char*) * 2);
-          global_config.format[0] = strdup(value);
+      } else if (strcmp(key, "scoreboard_format") == 0) {
+        if (global_config.scoreboard_format == NULL) {
+          global_config.scoreboard_format = malloc(sizeof(char*) * 2);
+          bzero(global_config.scoreboard_format, sizeof(char*) * 2);
+          global_config.scoreboard_format[0] = strdup(value);
         } else {
           size_t i = 0;
-          while (global_config.format[++i]);
-          global_config.format = realloc(global_config.format, sizeof(char*) * (i + 2));
-          global_config.format[i] = strdup(value);
-          global_config.format[++i] = NULL;
+          while (global_config.scoreboard_format[++i]);
+          global_config.scoreboard_format = realloc(global_config.scoreboard_format, sizeof(char*) * (i + 2));
+          global_config.scoreboard_format[i] = strdup(value);
+          global_config.scoreboard_format[++i] = NULL;
+        }
+      } else if (strcmp(key, "players_format") == 0) {
+        if (global_config.players_format == NULL) {
+          global_config.players_format = malloc(sizeof(char*) * 2);
+          bzero(global_config.players_format, sizeof(char*) * 2);
+          global_config.players_format[0] = strdup(value);
+        } else {
+          size_t i = 0;
+          while (global_config.players_format[++i]);
+          global_config.players_format = realloc(global_config.players_format, sizeof(char*) * (i + 2));
+          global_config.players_format[i] = strdup(value);
+          global_config.players_format[++i] = NULL;
         }
       } else if (strcmp(key, "unbuffered") == 0)
         setvbuf(stdout, NULL, _IONBF, 0);
@@ -81,7 +93,7 @@ int dispatch_config(struct event_base* base) {
   bufferevent_setcb(bufferevent, nbt_file_changed_cb, NULL, NULL, &global_config);
   bufferevent_enable(bufferevent, EV_READ);
   char pathbuf[strlen(global_config.world_path) + 32];
-  if (snprintf(pathbuf, sizeof(pathbuf), "%s/data", global_config.world_path)) {
+  if (global_config.scoreboard_format && snprintf(pathbuf, sizeof(pathbuf), "%s/data", global_config.world_path)) {
     struct stat sb;
     if (stat(pathbuf, &sb) == 0 && S_ISDIR(sb.st_mode)) {
       int wd = inotify_add_watch(inotifyfd, pathbuf, IN_CLOSE_WRITE);
@@ -90,6 +102,20 @@ int dispatch_config(struct event_base* base) {
         return 1;
       }
       global_config.data_wd = wd;
+    } else {
+      fprintf(stderr, "There was an error monitoring '%s', error: '%s'\n", pathbuf, strerror(errno));
+      return 1;
+    }
+  }
+  if (global_config.players_format && snprintf(pathbuf, sizeof(pathbuf), "%s/players", global_config.world_path)) {
+    struct stat sb;
+    if (stat(pathbuf, &sb) == 0 && S_ISDIR(sb.st_mode)) { /* They work with temporary files here so IN_MOVED_TO instead */
+      int wd = inotify_add_watch(inotifyfd, pathbuf, IN_MOVED_TO); /* of IN_CLOSE_WRITE */
+      if (wd == -1) {
+        fprintf(stderr, "There was an error adding '%s' to the file observer, error code %d.\n", pathbuf, wd);
+        return 1;
+      }
+      global_config.players_wd = wd;
     } else {
       fprintf(stderr, "There was an error monitoring '%s', error: '%s'\n", pathbuf, strerror(errno));
       return 1;
