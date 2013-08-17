@@ -28,6 +28,8 @@
 
 void print_objective_score(nbt_node* nbt, char** format);
 
+void print_player(nbt_node* nbt, char* username, char** format);
+
 void process_scoreboard_data(struct config* config) {
   DEBUG(255, "process_scoreboard_data(%p);", config);
   char pathbuf[strlen(config->world_path) + 64];
@@ -57,6 +59,17 @@ void process_player_data(struct config* config, char* player_file) {
       char* dump = nbt_dump_ascii(nbt);
       DEBUG(255, "%s", dump);
       free(dump);
+      const size_t file_len = strlen(player_file);
+      size_t dot;
+      for (dot = 0; dot < file_len; dot++) {
+        if (player_file[dot] == '.')
+          break;
+      }
+      if (player_file[dot] == '.')
+        player_file[dot] = '\0';
+      print_player(nbt, player_file, config->players_format);
+      if (player_file[dot] == '\0')
+        player_file[dot] = '.';
       nbt_free(nbt);
     }
   }
@@ -153,4 +166,8 @@ void print_objective_score(nbt_node* nbt, char** formats) {
     *buf = '\0';
     printf("%s", b);
   }
+};
+
+void print_player(nbt_node* nbt, char* username, char** format) {
+  DEBUG(255, "print_player(%p, %s, %p);", nbt, username, format);
 };
