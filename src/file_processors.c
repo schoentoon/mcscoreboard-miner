@@ -28,7 +28,7 @@
 
 void print_objective_score(nbt_node* nbt, char** format);
 
-void print_player(nbt_node* nbt, char* username, char** format);
+void print_player(nbt_node* nbt, char* username, char** formats);
 
 void process_scoreboard_data(struct config* config) {
   DEBUG(255, "process_scoreboard_data(%p);", config);
@@ -56,9 +56,11 @@ void process_player_data(struct config* config, char* player_file) {
   if (snprintf(pathbuf, sizeof(pathbuf), "%s/players/%s", config->world_path, player_file)) {
     nbt_node* nbt = nbt_parse_path(pathbuf);
     if (errno == NBT_OK) {
+#if 0
       char* dump = nbt_dump_ascii(nbt);
       DEBUG(255, "%s", dump);
       free(dump);
+#endif
       const size_t file_len = strlen(player_file);
       size_t dot;
       for (dot = 0; dot < file_len; dot++) {
@@ -168,6 +170,53 @@ void print_objective_score(nbt_node* nbt, char** formats) {
   }
 };
 
-void print_player(nbt_node* nbt, char* username, char** format) {
-  DEBUG(255, "print_player(%p, %s, %p);", nbt, username, format);
+void print_player(nbt_node* nbt, char* username, char** formats) {
+  DEBUG(255, "print_player(%p, %s, %p);", nbt, username, formats);
+  static char* USERNAME = "username";
+  DEFINE_TAG(XpLevel);
+  size_t i;
+  for (i = 0; formats[i]; i++) {
+    char b[BUFSIZ];
+    char* buf = b;
+    char* end = buf + sizeof(b);
+    char* f;
+    for (f = formats[i]; *f != '\0'; f++) {
+      if (*f == '%') {
+        f++;
+        if (string_startsWith(f, USERNAME)) {
+          APPEND(username);
+          f += 7;
+        } else if (string_startsWith(f, XpLevel)) {
+          nbt_node* tmp = FIND_NBT_NODE(XpLevel, XpLevel);
+          if (tmp && tmp->type == TAG_INT) {
+            snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
+            while (*buf != '\0')
+              buf++;
+            f += 6;
+          }
+        }
+      } else if (buf < end) {
+        if (*f == '\\') {
+          switch (*(++f)) {
+          case 'n':
+            *buf++ = '\n';
+            break;
+          case 'r':
+            *buf++ = '\r';
+            break;
+          case 't':
+            *buf++ = '\t';
+            break;
+          default:
+            *buf++ = '\\';
+            *buf++ = *f;
+            break;
+          }
+        } else
+          *buf++ = *f;
+      }
+    }
+    *buf = '\0';
+    printf("%s", b);
+  }
 };
