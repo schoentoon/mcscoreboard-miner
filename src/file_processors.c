@@ -173,9 +173,9 @@ void print_objective_score(nbt_node* nbt, char** formats) {
 void print_player(nbt_node* nbt, char* username, char** formats) {
   DEBUG(255, "print_player(%p, %s, %p);", nbt, username, formats);
   static char* USERNAME = "username";
-  DEFINE_TAG(XpLevel);
-  DEFINE_TAG(Health);
-  DEFINE_TAG(foodLevel);
+  DEFINE_TAG(level);
+  DEFINE_TAG(health);
+  DEFINE_TAG(food);
   size_t i;
   for (i = 0; formats[i]; i++) {
     char b[BUFSIZ];
@@ -188,29 +188,29 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
         if (string_startsWith(f, USERNAME)) {
           APPEND(username);
           f += 7;
-        } else if (string_startsWith(f, XpLevel)) {
-          nbt_node* tmp = FIND_NBT_NODE(XpLevel, XpLevel);
+        } else if (string_startsWith(f, level)) {
+          nbt_node* tmp = FIND_NBT_NODE(level, XpLevel);
           if (tmp && tmp->type == TAG_INT) {
             snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
             while (*buf != '\0')
               buf++;
-            f += 6;
+            f += 4;
           }
-        } else if (string_startsWith(f, Health)) {
-          nbt_node* tmp = FIND_NBT_NODE(Health, Health);
+        } else if (string_startsWith(f, health)) {
+          nbt_node* tmp = FIND_NBT_NODE(health, Health);
           if (tmp && tmp->type == TAG_SHORT) {
             snprintf(buf, end - buf, "%d", tmp->payload.tag_short);
             while (*buf != '\0')
               buf++;
             f += 5;
           }
-        } else if (string_startsWith(f, foodLevel)) {
-          nbt_node* tmp = FIND_NBT_NODE(foodLevel, foodLevel);
+        } else if (string_startsWith(f, food)) {
+          nbt_node* tmp = FIND_NBT_NODE(food, foodLevel);
           if (tmp && tmp->type == TAG_INT) {
             snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
             while (*buf != '\0')
               buf++;
-            f += 8;
+            f += 3;
           }
         }
       } else if (buf < end) {
