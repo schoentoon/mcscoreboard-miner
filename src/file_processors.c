@@ -174,6 +174,8 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
   DEBUG(255, "print_player(%p, %s, %p);", nbt, username, formats);
   static char* USERNAME = "username";
   DEFINE_TAG(XpLevel);
+  DEFINE_TAG(Health);
+  DEFINE_TAG(foodLevel);
   size_t i;
   for (i = 0; formats[i]; i++) {
     char b[BUFSIZ];
@@ -193,6 +195,22 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             while (*buf != '\0')
               buf++;
             f += 6;
+          }
+        } else if (string_startsWith(f, Health)) {
+          nbt_node* tmp = FIND_NBT_NODE(Health, Health);
+          if (tmp && tmp->type == TAG_SHORT) {
+            snprintf(buf, end - buf, "%d", tmp->payload.tag_short);
+            while (*buf != '\0')
+              buf++;
+            f += 5;
+          }
+        } else if (string_startsWith(f, foodLevel)) {
+          nbt_node* tmp = FIND_NBT_NODE(foodLevel, foodLevel);
+          if (tmp && tmp->type == TAG_INT) {
+            snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
+            while (*buf != '\0')
+              buf++;
+            f += 8;
           }
         }
       } else if (buf < end) {
