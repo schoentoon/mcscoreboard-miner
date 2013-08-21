@@ -178,6 +178,10 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
   DEFINE_TAG(health);
   DEFINE_TAG(food);
   DEFINE_TAG(score);
+  nbt_node* nbt_pos = NULL;
+  static char* POSX = "PosX";
+  static char* POSY = "PosY";
+  static char* POSZ = "PosZ";
   static char* xplevel = "xplevel";
   size_t i;
   for (i = 0; formats[i]; i++) {
@@ -240,6 +244,39 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             while (*buf != '\0')
               buf++;
             f += 4;
+          }
+        } else if (string_startsWith(f, POSX)) {
+          nbt_node* tmp = FIND_NBT_NODE(pos, Pos);
+          if (tmp && tmp->type == TAG_LIST) {
+            nbt_node* pos = nbt_list_item(tmp, 0);
+            if (pos && pos->type == TAG_DOUBLE) {
+              snprintf(buf, end - buf, "%f", pos->payload.tag_double);
+              while (*buf != '\0')
+                buf++;
+              f+= 3;
+            }
+          }
+        } else if (string_startsWith(f, POSY)) {
+          nbt_node* tmp = FIND_NBT_NODE(pos, Pos);
+          if (tmp && tmp->type == TAG_LIST) {
+            nbt_node* pos = nbt_list_item(tmp, 1);
+            if (pos && pos->type == TAG_DOUBLE) {
+              snprintf(buf, end - buf, "%f", pos->payload.tag_double);
+              while (*buf != '\0')
+                buf++;
+              f+= 3;
+            }
+          }
+        } else if (string_startsWith(f, POSZ)) {
+          nbt_node* tmp = FIND_NBT_NODE(pos, Pos);
+          if (tmp && tmp->type == TAG_LIST) {
+            nbt_node* pos = nbt_list_item(tmp, 2);
+            if (pos && pos->type == TAG_DOUBLE) {
+              snprintf(buf, end - buf, "%f", pos->payload.tag_double);
+              while (*buf != '\0')
+                buf++;
+              f+= 3;
+            }
           }
         }
       } else if (buf < end) {
