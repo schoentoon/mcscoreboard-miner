@@ -178,6 +178,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
   DEFINE_TAG(health);
   DEFINE_TAG(food);
   DEFINE_TAG(score);
+  DEFINE_TAG(absorption);
   nbt_node* nbt_pos = NULL;
   static char* POSX = "PosX";
   static char* POSY = "PosY";
@@ -277,6 +278,14 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
                 buf++;
               f+= 3;
             }
+          }
+        } else if (string_startsWith(f, absorption)) {
+          nbt_node* tmp = FIND_NBT_NODE(absorption, AbsorptionAmount);
+          if (tmp && tmp->type == TAG_FLOAT) {
+            snprintf(buf, end - buf, "%f", tmp->payload.tag_float);
+            while (*buf != '\0')
+              buf++;
+            f += 9;
           }
         }
       } else if (buf < end) {
