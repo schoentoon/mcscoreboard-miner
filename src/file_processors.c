@@ -30,6 +30,8 @@ void print_objective_score(nbt_node* nbt, char** format);
 
 void print_player(nbt_node* nbt, char* username, char** formats);
 
+void print_level(nbt_node* nbt, char** formats);
+
 void process_scoreboard_data(struct config* config) {
   DEBUG(255, "process_scoreboard_data(%p);", config);
   char pathbuf[strlen(config->world_path) + 64];
@@ -88,6 +90,7 @@ void process_level_data(struct config* config) {
       DEBUG(255, "%s", dump);
       free(dump);
 #endif
+      print_level(nbt, config->level_format);
       nbt_free(nbt);
     }
   }
@@ -302,6 +305,52 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             while (*buf != '\0')
               buf++;
             f += 9;
+          }
+        }
+      } else if (buf < end) {
+        if (*f == '\\') {
+          switch (*(++f)) {
+          case 'n':
+            *buf++ = '\n';
+            break;
+          case 'r':
+            *buf++ = '\r';
+            break;
+          case 't':
+            *buf++ = '\t';
+            break;
+          default:
+            *buf++ = '\\';
+            *buf++ = *f;
+            break;
+          }
+        } else
+          *buf++ = *f;
+      }
+    }
+    *buf = '\0';
+    printf("%s", b);
+  }
+};
+
+void print_level(nbt_node* nbt, char** formats) {
+  DEFINE_TAG(seed);
+  size_t i;
+  for (i = 0; formats[i]; i++) {
+    char b[BUFSIZ];
+    char* buf = b;
+    char* end = buf + sizeof(b);
+    char* f;
+    for (f = formats[i]; *f != '\0'; f++) {
+      if (*f == '%') {
+        f++;
+        if (string_startsWith(f, seed)) {
+          nbt_node* tmp = FIND_NBT_NODE(seed, RandomSeed);
+          if (tmp && tmp->type == TAG_LONG) {
+            snprintf(buf, end - buf, "%ld", tmp->payload.tag_long);
+            while (*buf != '\0')
+              buf++;
+            f += 3;
           }
         }
       } else if (buf < end) {
