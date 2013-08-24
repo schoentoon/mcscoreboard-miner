@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <limits.h>
 #include <string.h>
 #include <strings.h>
@@ -78,6 +79,18 @@ int parse_config(char* filename) {
           global_config.players_format[i] = strdup(value);
           global_config.players_format[++i] = NULL;
         }
+      } else if (strcmp(key, "level_format") == 0) {
+        if (global_config.level_format == NULL) {
+          global_config.level_format = malloc(sizeof(char*) * 2);
+          bzero(global_config.level_format, sizeof(char*) * 2);
+          global_config.level_format[0] = strdup(value);
+        } else {
+          size_t i = 0;
+          while (global_config.level_format[++i]);
+          global_config.level_format = realloc(global_config.level_format, sizeof(char*) * (i + 2));
+          global_config.level_format[i] = strdup(value);
+          global_config.level_format[++i] = NULL;
+        }
       } else if (strcmp(key, "unbuffered") == 0)
         setvbuf(stdout, NULL, _IONBF, 0);
     }
@@ -118,6 +131,19 @@ int dispatch_config(struct event_base* base) {
       global_config.players_wd = wd;
     } else {
       fprintf(stderr, "There was an error monitoring '%s', error: '%s'\n", pathbuf, strerror(errno));
+      return 1;
+    }
+  }
+  if (global_config.level_format && snprintf(pathbuf, sizeof(pathbuf), "%s/level.dat", global_config.world_path)) {
+    if (access(pathbuf, F_OK) != -1) { /* They work with temporary files here so IN_MOVED_TO instead */
+      int wd = inotify_add_watch(inotifyfd, global_config.world_path, IN_MOVED_TO); /* of IN_CLOSE_WRITE */
+      if (wd == -1) {
+        fprintf(stderr, "There was an error adding '%s' to the file observer, error code %d.\n", global_config.world_path, wd);
+        return 1;
+      }
+      global_config.level_wd = wd;
+    } else {
+      fprintf(stderr, "There was an error monitoring '%s', error: '%s'\n", global_config.world_path, strerror(errno));
       return 1;
     }
   }

@@ -77,6 +77,22 @@ void process_player_data(struct config* config, char* player_file) {
   }
 };
 
+void process_level_data(struct config* config) {
+  DEBUG(255, "process_level_data(%p);", config);
+  char pathbuf[strlen(config->world_path) + 64];
+  if (snprintf(pathbuf, sizeof(pathbuf), "%s/level.dat", config->world_path)) {
+    nbt_node* nbt = nbt_parse_path(pathbuf);
+    if (errno == NBT_OK) {
+#if 1
+      char* dump = nbt_dump_ascii(nbt);
+      DEBUG(255, "%s", dump);
+      free(dump);
+#endif
+      nbt_free(nbt);
+    }
+  }
+};
+
 int string_startsWith(char* line, char* start) {
   int line_len = strlen(line);
   int start_len = strlen(start);

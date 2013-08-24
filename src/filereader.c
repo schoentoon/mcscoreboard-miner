@@ -41,6 +41,11 @@ void nbt_file_changed_cb(struct bufferevent* bev, void* args) {
           process_scoreboard_data(config);
       } else if (event->wd == config->players_wd)
         process_player_data(config, event->name);
+      else if (event->wd == config->level_wd) {
+        static const char* LEVEL_DAT = "level.dat";
+        if (strcmp(event->name, LEVEL_DAT) == 0)
+          process_level_data(config);
+      }
     }
   };
 };
