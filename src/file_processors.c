@@ -335,6 +335,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
 
 void print_level(nbt_node* nbt, char** formats) {
   DEFINE_TAG(seed);
+  DEFINE_TAG(time);
   size_t i;
   for (i = 0; formats[i]; i++) {
     char b[BUFSIZ];
@@ -346,6 +347,14 @@ void print_level(nbt_node* nbt, char** formats) {
         f++;
         if (string_startsWith(f, seed)) {
           nbt_node* tmp = FIND_NBT_NODE(seed, RandomSeed);
+          if (tmp && tmp->type == TAG_LONG) {
+            snprintf(buf, end - buf, "%ld", tmp->payload.tag_long);
+            while (*buf != '\0')
+              buf++;
+            f += 3;
+          }
+        } else if (string_startsWith(f, time)) {
+          nbt_node* tmp = FIND_NBT_NODE(time, Time);
           if (tmp && tmp->type == TAG_LONG) {
             snprintf(buf, end - buf, "%ld", tmp->payload.tag_long);
             while (*buf != '\0')
