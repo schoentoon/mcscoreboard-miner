@@ -85,7 +85,7 @@ void process_level_data(struct config* config) {
   if (snprintf(pathbuf, sizeof(pathbuf), "%s/level.dat", config->world_path)) {
     nbt_node* nbt = nbt_parse_path(pathbuf);
     if (errno == NBT_OK) {
-#if 1
+#if 0
       char* dump = nbt_dump_ascii(nbt);
       DEBUG(255, "%s", dump);
       free(dump);
@@ -336,6 +336,8 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
 void print_level(nbt_node* nbt, char** formats) {
   DEFINE_TAG(seed);
   DEFINE_TAG(time);
+  DEFINE_TAG(raining);
+  DEFINE_TAG(thundering);
   size_t i;
   for (i = 0; formats[i]; i++) {
     char b[BUFSIZ];
@@ -360,6 +362,22 @@ void print_level(nbt_node* nbt, char** formats) {
             while (*buf != '\0')
               buf++;
             f += 3;
+          }
+        } else if (string_startsWith(f, raining)) {
+          nbt_node* tmp = FIND_NBT_NODE(raining, raining);
+          if (tmp && tmp->type == TAG_BYTE) {
+            snprintf(buf, end - buf, "%s", (tmp->payload.tag_byte == 1) ? "true" : "false");
+            while (*buf != '\0')
+              buf++;
+            f += 6;
+          }
+        } else if (string_startsWith(f, thundering)) {
+          nbt_node* tmp = FIND_NBT_NODE(thundering, thundering);
+          if (tmp && tmp->type == TAG_BYTE) {
+            snprintf(buf, end - buf, "%s", (tmp->payload.tag_byte == 1) ? "true" : "false");
+            while (*buf != '\0')
+              buf++;
+            f += 9;
           }
         }
       } else if (buf < end) {
