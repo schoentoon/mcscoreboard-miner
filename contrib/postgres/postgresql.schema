@@ -1,0 +1,25 @@
+CREATE TABLE level (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    daytime integer NOT NULL,
+    rain boolean,
+    thunder boolean
+);
+CREATE TABLE players (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    level real,
+    health smallint,
+    food smallint
+);
+CREATE TABLE scoreboard (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    objective character varying(32) NOT NULL,
+    score integer
+);
+ALTER TABLE ONLY level ADD CONSTRAINT level_key PRIMARY KEY ("when", daytime);
+ALTER TABLE ONLY players ADD CONSTRAINT players_key PRIMARY KEY ("when", name);
+ALTER TABLE ONLY scoreboard ADD CONSTRAINT scoreboard_key PRIMARY KEY ("when", name, objective);
+CREATE RULE level_log AS ON INSERT TO level WHERE (EXISTS (SELECT last_entry.rain, last_entry.thunder FROM (SELECT level.rain, level.thunder FROM level ORDER BY level."when" DESC LIMIT 1) last_entry WHERE ((last_entry.rain = new.rain) AND (last_entry.thunder = new.thunder)))) DO INSTEAD NOTHING;
+CREATE RULE players_log AS ON INSERT TO players WHERE (EXISTS (SELECT last_entry.level, last_entry.health, last_entry.food FROM (SELECT players.level, players.health, players.food FROM players WHERE ((players.name)::text = (new.name)::text) ORDER BY players."when" DESC LIMIT 1) last_entry WHERE (((last_entry.level = new.level) AND (last_entry.health = new.health)) AND (last_entry.food = new.food)))) DO INSTEAD NOTHING;
+CREATE RULE scoreboard_log AS ON INSERT TO scoreboard WHERE (EXISTS (SELECT last_entry.score FROM (SELECT scoreboard.score FROM scoreboard WHERE (((scoreboard.name)::text = (new.name)::text) AND ((scoreboard.objective)::text = (new.objective)::text)) ORDER BY scoreboard."when" DESC LIMIT 1) last_entry WHERE (last_entry.score = new.score))) DO INSTEAD NOTHING;
