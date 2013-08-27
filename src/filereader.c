@@ -21,6 +21,7 @@
 #include "config.h"
 #include "file_processors.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <limits.h>
 #include <sys/inotify.h>
@@ -37,14 +38,19 @@ void nbt_file_changed_cb(struct bufferevent* bev, void* args) {
       DEBUG(255, "%s changed!", event->name);
       if (event->wd == config->data_wd) {
         static const char* SCOREBOARD_DAT = "scoreboard.dat";
-        if (strcmp(event->name, SCOREBOARD_DAT) == 0)
+        if (strcmp(event->name, SCOREBOARD_DAT) == 0) {
           process_scoreboard_data(config);
-      } else if (event->wd == config->players_wd)
+          fflush(stdout);
+        }
+      } else if (event->wd == config->players_wd) {
         process_player_data(config, event->name);
-      else if (event->wd == config->level_wd) {
+        fflush(stdout);
+      } else if (event->wd == config->level_wd) {
         static const char* LEVEL_DAT = "level.dat";
-        if (strcmp(event->name, LEVEL_DAT) == 0)
+        if (strcmp(event->name, LEVEL_DAT) == 0) {
           process_level_data(config);
+          fflush(stdout);
+        }
       }
     }
   };
