@@ -334,8 +334,10 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
 };
 
 void print_level(nbt_node* nbt, char** formats) {
+  static char* timeday = "timeday";
   DEFINE_TAG(seed);
   DEFINE_TAG(time);
+  DEFINE_TAG(daytime);
   DEFINE_TAG(raining);
   DEFINE_TAG(thundering);
   size_t i;
@@ -355,6 +357,14 @@ void print_level(nbt_node* nbt, char** formats) {
               buf++;
             f += 3;
           }
+        } else if (string_startsWith(f, timeday)) {
+          nbt_node* tmp = FIND_NBT_NODE(daytime, DayTime);
+          if (tmp && tmp->type == TAG_LONG) {
+            snprintf(buf, end - buf, "%ld", tmp->payload.tag_long % 24000);
+            while (*buf != '\0')
+              buf++;
+            f += 6;
+          }
         } else if (string_startsWith(f, time)) {
           nbt_node* tmp = FIND_NBT_NODE(time, Time);
           if (tmp && tmp->type == TAG_LONG) {
@@ -362,6 +372,14 @@ void print_level(nbt_node* nbt, char** formats) {
             while (*buf != '\0')
               buf++;
             f += 3;
+          }
+        } else if (string_startsWith(f, daytime)) {
+          nbt_node* tmp = FIND_NBT_NODE(daytime, DayTime);
+          if (tmp && tmp->type == TAG_LONG) {
+            snprintf(buf, end - buf, "%ld", tmp->payload.tag_long);
+            while (*buf != '\0')
+              buf++;
+            f += 6;
           }
         } else if (string_startsWith(f, raining)) {
           nbt_node* tmp = FIND_NBT_NODE(raining, raining);
