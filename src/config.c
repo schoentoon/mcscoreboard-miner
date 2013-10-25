@@ -91,6 +91,18 @@ int parse_config(char* filename) {
           global_config.level_format[i] = strdup(value);
           global_config.level_format[++i] = NULL;
         }
+      } else if (strcmp(key, "stats_useitem_format") == 0) {
+        if (global_config.stats_useItem_format == NULL) {
+          global_config.stats_useItem_format = malloc(sizeof(char*) * 2);
+          bzero(global_config.stats_useItem_format, sizeof(char*) * 2);
+          global_config.stats_useItem_format[0] = strdup(value);
+        } else {
+          size_t i = 0;
+          while (global_config.stats_useItem_format[++i]);
+          global_config.stats_useItem_format = realloc(global_config.stats_useItem_format, sizeof(char*) * (i + 2));
+          global_config.stats_useItem_format[i] = strdup(value);
+          global_config.stats_useItem_format[++i] = NULL;
+        }
       } else if (strcmp(key, "unbuffered") == 0)
         setvbuf(stdout, NULL, _IONBF, 0);
     }
@@ -103,7 +115,7 @@ int dispatch_config(struct event_base* base) {
   if (inotifyfd == -1)
     return 1;
   struct bufferevent *bufferevent = bufferevent_socket_new(base, inotifyfd, 0);
-  bufferevent_setcb(bufferevent, nbt_file_changed_cb, NULL, NULL, &global_config);
+  bufferevent_setcb(bufferevent, file_changed_cb, NULL, NULL, &global_config);
   bufferevent_enable(bufferevent, EV_READ);
   char pathbuf[strlen(global_config.world_path) + 32];
   if (global_config.scoreboard_format && snprintf(pathbuf, sizeof(pathbuf), "%s/data", global_config.world_path)) {
@@ -144,6 +156,20 @@ int dispatch_config(struct event_base* base) {
       global_config.level_wd = wd;
     } else {
       fprintf(stderr, "There was an error monitoring '%s', error: '%s'\n", global_config.world_path, strerror(errno));
+      return 1;
+    }
+  }
+  if (global_config.stats_useItem_format && snprintf(pathbuf, sizeof(pathbuf), "%s/stats", global_config.world_path)) {
+    struct stat sb;
+    if (stat(pathbuf, &sb) == 0 && S_ISDIR(sb.st_mode)) {
+      int wd = inotify_add_watch(inotifyfd, pathbuf, IN_CLOSE_WRITE);
+      if (wd == -1) {
+        fprintf(stderr, "There was an error adding '%s' to the file observer, error code %d.\n", pathbuf, wd);
+        return 1;
+      }
+      global_config.stats_wd = wd;
+    } else {
+      fprintf(stderr, "There was an error monitoring '%s', error: '%s'\n", pathbuf, strerror(errno));
       return 1;
     }
   }

@@ -28,7 +28,7 @@
 
 #define BUF_LEN (sizeof(struct inotify_event) + NAME_MAX + 1)
 
-void nbt_file_changed_cb(struct bufferevent* bev, void* args) {
+void file_changed_cb(struct bufferevent* bev, void* args) {
   struct config* config = args;
   char buf[BUF_LEN];
   size_t numRead;
@@ -38,20 +38,17 @@ void nbt_file_changed_cb(struct bufferevent* bev, void* args) {
       DEBUG(255, "%s changed!", event->name);
       if (event->wd == config->data_wd) {
         static const char* SCOREBOARD_DAT = "scoreboard.dat";
-        if (strcmp(event->name, SCOREBOARD_DAT) == 0) {
+        if (strcmp(event->name, SCOREBOARD_DAT) == 0)
           process_scoreboard_data(config);
-          fflush(stdout);
-        }
-      } else if (event->wd == config->players_wd) {
+      } else if (event->wd == config->players_wd)
         process_player_data(config, event->name);
-        fflush(stdout);
-      } else if (event->wd == config->level_wd) {
+      else if (event->wd == config->level_wd) {
         static const char* LEVEL_DAT = "level.dat";
-        if (strcmp(event->name, LEVEL_DAT) == 0) {
+        if (strcmp(event->name, LEVEL_DAT) == 0)
           process_level_data(config);
-          fflush(stdout);
-        }
-      }
+      } else if (event->wd == config->stats_wd)
+        process_stats(config, event->name);
+      fflush(stdout);
     }
   };
 };

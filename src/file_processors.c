@@ -26,11 +26,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <jansson.h>
+
 void print_objective_score(nbt_node* nbt, char** format);
 
 void print_player(nbt_node* nbt, char* username, char** formats);
 
 void print_level(nbt_node* nbt, char** formats);
+
+void print_stat(json_t* json, char* username, char* key, char** formats);
 
 void process_scoreboard_data(struct config* config) {
   DEBUG(255, "process_scoreboard_data(%p);", config);
@@ -106,6 +110,37 @@ int string_startsWith(char* line, char* start) {
       return 0;
   }
   return 1;
+}
+
+void process_stats(struct config* config, char* player_file) {
+  DEBUG(255, "process_stats(%p, %s);", config, player_file);
+  json_t *json;
+  json_error_t error;
+  char pathbuf[strlen(config->world_path) + 64];
+  if (snprintf(pathbuf, sizeof(pathbuf), "%s/stats/%s", config->world_path, player_file)) {
+    DEBUG(255, "pathbuf: %s", pathbuf);
+    json = json_load_file(pathbuf, 0, &error);
+    if (json) {
+      const char *key;
+      json_t *value;
+      size_t i;
+      for (i = 0; i < strlen(player_file); i++) {
+        if (player_file[i] == '.') {
+          player_file[i] = '\0';
+          break;
+        }
+      }
+      json_object_foreach(json, key, value) {
+        static const char* USEITEM = "stat.useItem.";
+        if (string_startsWith(key, USEITEM))
+          print_stat(value, player_file, key, config->stats_useItem_format);
+        DEBUG(255, "Key: %s", key);
+      }
+      json_decref(json);
+    } else {
+      DEBUG(255, "json == NULL :(");
+    }
+  }
 };
 
 #define APPEND(/*char* */ str) \
@@ -306,6 +341,67 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
               buf++;
             f += 9;
           }
+        }
+      } else if (buf < end) {
+        if (*f == '\\') {
+          switch (*(++f)) {
+          case 'n':
+            *buf++ = '\n';
+            break;
+          case 'r':
+            *buf++ = '\r';
+            break;
+          case 't':
+            *buf++ = '\t';
+            break;
+          default:
+            *buf++ = '\\';
+            *buf++ = *f;
+            break;
+          }
+        } else
+          *buf++ = *f;
+      }
+    }
+    *buf = '\0';
+    printf("%s", b);
+  }
+};
+
+void print_stat(json_t* json, char* username, char* key, char** formats) {
+  DEBUG(255, "print_stat(%p, %s, %s, %p);", json, username, key, formats);
+  static char* USERNAME = "username";
+  static char* ID = "id";
+  static char* VALUE = "value";
+  size_t i;
+  for (i = 0; formats[i]; i++) {
+    char b[BUFSIZ];
+    char* buf = b;
+    char* end = buf + sizeof(b);
+    char* f;
+    for (f = formats[i]; *f != '\0'; f++) {
+      if (*f == '%') {
+        f++;
+        if (string_startsWith(f, USERNAME)) {
+          APPEND(username);
+          f += 7;
+        } else if (string_startsWith(f, VALUE)) {
+          if (json_is_integer(json)) {
+            snprintf(buf, end - buf, "%lld", json_integer_value(json));
+            while (*buf != '\0')
+              buf++;
+            f += 4;
+          }
+        } else if (string_startsWith(f, ID)) {
+          size_t dot, i = 0;
+          for (i = 0; key[i]; i++) {
+            if (key[i] == '.')
+              dot = i + 1;
+          }
+          snprintf(buf, end - buf, "%s", &key[dot]);
+          while (*buf != '\0')
+            buf++;
+          f += 1;
         }
       } else if (buf < end) {
         if (*f == '\\') {

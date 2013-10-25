@@ -1,7 +1,7 @@
 CFLAGS := $(CFLAGS) -Wall -O2 -mtune=native -std=c99 -g
 DEFINES:= -D_GNU_SOURCE -D_XOPEN_SOURCE=500
 INC    := -IcNBT -Iinclude $(INC)
-LFLAGS := -LcNBT -lnbt -levent -lz
+LFLAGS := -LcNBT -lnbt -levent -lz -ljansson
 CC     := gcc
 BINARY := mcscoreboard-miner
 DEPS   := build/main.o build/debug.o build/config.o build/filereader.o build/file_processors.o

@@ -20,6 +20,6 @@
 
 #include <event2/bufferevent.h>
 
-void nbt_file_changed_cb(struct bufferevent* bev, void* args);
+void file_changed_cb(struct bufferevent* bev, void* args);
 
 #endif //_FILE_READER_H

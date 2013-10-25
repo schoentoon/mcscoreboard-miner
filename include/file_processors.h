@@ -26,4 +26,6 @@ void process_player_data(struct config* config, char* player_file);
 
 void process_level_data(struct config* config);
 
+void process_stats(struct config* config, char* player_file);
+
 #endif //_FILE_PROCESSORS_H

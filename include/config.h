@@ -27,9 +27,11 @@ struct config {
   char** scoreboard_format;
   char** players_format;
   char** level_format;
+  char** stats_useItem_format;
   int data_wd;
   int players_wd;
   int level_wd;
+  int stats_wd;
 };
 
 int parse_config(char* filename);
