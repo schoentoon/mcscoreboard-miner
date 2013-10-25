@@ -4,6 +4,9 @@ CREATE TABLE level (
     rain boolean,
     thunder boolean
 );
+ALTER TABLE ONLY level ADD CONSTRAINT level_key PRIMARY KEY ("when", daytime);
+CREATE RULE level_log AS ON INSERT TO level WHERE (EXISTS (SELECT last_entry.rain, last_entry.thunder FROM (SELECT level.rain, level.thunder FROM level ORDER BY level."when" DESC LIMIT 1) last_entry WHERE ((last_entry.rain = new.rain) AND (last_entry.thunder = new.thunder)))) DO INSTEAD NOTHING;
+
 CREATE TABLE players (
     "when" timestamp with time zone DEFAULT now() NOT NULL,
     name character varying(32) NOT NULL,
@@ -11,15 +14,73 @@ CREATE TABLE players (
     health smallint,
     food smallint
 );
+ALTER TABLE ONLY players ADD CONSTRAINT players_key PRIMARY KEY ("when", name);
+CREATE RULE players_log AS ON INSERT TO players WHERE (EXISTS (SELECT last_entry.level, last_entry.health, last_entry.food FROM (SELECT players.level, players.health, players.food FROM players WHERE ((players.name)::text = (new.name)::text) ORDER BY players."when" DESC LIMIT 1) last_entry WHERE (((last_entry.level = new.level) AND (last_entry.health = new.health)) AND (last_entry.food = new.food)))) DO INSTEAD NOTHING;
+
 CREATE TABLE scoreboard (
     "when" timestamp with time zone DEFAULT now() NOT NULL,
     name character varying(32) NOT NULL,
     objective character varying(32) NOT NULL,
     score integer
 );
-ALTER TABLE ONLY level ADD CONSTRAINT level_key PRIMARY KEY ("when", daytime);
-ALTER TABLE ONLY players ADD CONSTRAINT players_key PRIMARY KEY ("when", name);
 ALTER TABLE ONLY scoreboard ADD CONSTRAINT scoreboard_key PRIMARY KEY ("when", name, objective);
-CREATE RULE level_log AS ON INSERT TO level WHERE (EXISTS (SELECT last_entry.rain, last_entry.thunder FROM (SELECT level.rain, level.thunder FROM level ORDER BY level."when" DESC LIMIT 1) last_entry WHERE ((last_entry.rain = new.rain) AND (last_entry.thunder = new.thunder)))) DO INSTEAD NOTHING;
-CREATE RULE players_log AS ON INSERT TO players WHERE (EXISTS (SELECT last_entry.level, last_entry.health, last_entry.food FROM (SELECT players.level, players.health, players.food FROM players WHERE ((players.name)::text = (new.name)::text) ORDER BY players."when" DESC LIMIT 1) last_entry WHERE (((last_entry.level = new.level) AND (last_entry.health = new.health)) AND (last_entry.food = new.food)))) DO INSTEAD NOTHING;
 CREATE RULE scoreboard_log AS ON INSERT TO scoreboard WHERE (EXISTS (SELECT last_entry.score FROM (SELECT scoreboard.score FROM scoreboard WHERE (((scoreboard.name)::text = (new.name)::text) AND ((scoreboard.objective)::text = (new.objective)::text)) ORDER BY scoreboard."when" DESC LIMIT 1) last_entry WHERE (last_entry.score = new.score))) DO INSTEAD NOTHING;
+
+CREATE TABLE useitems (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    item integer,
+    uses bigint
+);
+ALTER TABLE ONLY useitems ADD CONSTRAINT useitems_pkey PRIMARY KEY ("when", name, item);
+CREATE RULE useitems_log AS ON INSERT TO useitems WHERE (EXISTS (SELECT last_entry.uses FROM (SELECT useitems.uses FROM useitems WHERE (((useitems.name)::text = (new.name)::text) AND (useitems.item = new.item)) ORDER BY useitems."when" DESC LIMIT 1) last_entry WHERE (last_entry.uses = new.uses))) DO INSTEAD NOTHING;
+
+CREATE TABLE minedblock (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    block integer,
+    mined bigint
+);
+ALTER TABLE ONLY minedblock ADD CONSTRAINT minedblock_pkey PRIMARY KEY ("when", name, block);
+CREATE RULE minedblock_log AS ON INSERT TO minedblock WHERE (EXISTS (SELECT last_entry.mined FROM (SELECT minedblock.mined FROM minedblock WHERE (((minedblock.name)::text = (new.name)::text) AND (minedblock.block = new.block)) ORDER BY minedblock."when" DESC LIMIT 1) last_entry WHERE (last_entry.mined = new.mined))) DO INSTEAD NOTHING;
+
+CREATE TABLE kills (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    entity character varying(32) NOT NULL,
+    kills bigint
+);
+ALTER TABLE ONLY kills ADD CONSTRAINT kills_pkey PRIMARY KEY ("when", name, entity);
+CREATE RULE kills_log AS ON INSERT TO kills WHERE (EXISTS (SELECT last_entry.kills FROM (SELECT kills.kills FROM kills WHERE (((kills.name)::text = (new.name)::text) AND ((kills.entity)::text = (new.entity)::text)) ORDER BY kills."when" DESC LIMIT 1) last_entry WHERE (last_entry.kills = new.kills))) DO INSTEAD NOTHING;
+
+CREATE TABLE damage_dealt (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    damage bigint
+);
+ALTER TABLE ONLY damage_dealt ADD CONSTRAINT damage_dealt_pkey PRIMARY KEY ("when", name, damage);
+CREATE RULE damage_dealt_log AS ON INSERT TO damage_dealt WHERE (EXISTS (SELECT last_entry.damage FROM (SELECT damage_dealt.damage FROM damage_dealt WHERE ((damage_dealt.name)::text = (new.name)::text) ORDER BY damage_dealt."when" DESC LIMIT 1) last_entry WHERE (last_entry.damage = new.damage))) DO INSTEAD NOTHING;
+
+CREATE TABLE damage_taken (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    damage bigint
+);
+ALTER TABLE ONLY damage_taken ADD CONSTRAINT damage_taken_pkey PRIMARY KEY ("when", name, damage);
+CREATE RULE damage_taken_log AS ON INSERT TO damage_taken WHERE (EXISTS (SELECT last_entry.damage FROM (SELECT damage_taken.damage FROM damage_taken WHERE ((damage_taken.name)::text = (new.name)::text) ORDER BY damage_taken."when" DESC LIMIT 1) last_entry WHERE (last_entry.damage = new.damage))) DO INSTEAD NOTHING;
+
+CREATE TABLE jumps (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    jumps bigint
+);
+ALTER TABLE ONLY jumps ADD CONSTRAINT jumps_pkey PRIMARY KEY ("when", name, jumps);
+CREATE RULE jumps_log AS ON INSERT TO jumps WHERE (EXISTS (SELECT last_entry.jumps FROM (SELECT jumps.jumps FROM jumps WHERE ((jumps.name)::text = (new.name)::text) ORDER BY jumps."when" DESC LIMIT 1) last_entry WHERE (last_entry.jumps = new.jumps))) DO INSTEAD NOTHING;
+
+CREATE TABLE open_inventory (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    counter bigint
+);
+ALTER TABLE ONLY open_inventory ADD CONSTRAINT open_inventory_pkey PRIMARY KEY ("when", name, counter);
+CREATE RULE open_inventory_log AS ON INSERT TO open_inventory WHERE (EXISTS (SELECT last_entry.counter FROM (SELECT open_inventory.counter FROM open_inventory WHERE ((open_inventory.name)::text = (new.name)::text) ORDER BY open_inventory."when" DESC LIMIT 1) last_entry WHERE (last_entry.counter = new.counter))) DO INSTEAD NOTHING;
