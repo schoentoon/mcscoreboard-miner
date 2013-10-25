@@ -133,10 +133,13 @@ void process_stats(struct config* config, char* player_file) {
       json_object_foreach(json, key, value) {
         static const char* USEITEM = "stat.useItem.";
         static const char* MINEBLOCK = "stat.mineBlock.";
-        if (string_startsWith(key, USEITEM) && config->stats_useItem_format)
+        static const char* KILLENTITY = "stat.killEntity.";
+        if (config->stats_useItem_format && string_startsWith(key, USEITEM))
           print_stat(value, player_file, key, config->stats_useItem_format);
-        else if (string_startsWith(key, MINEBLOCK) && config->stats_mineBlock_format)
+        else if (config->stats_mineBlock_format && string_startsWith(key, MINEBLOCK))
           print_stat(value, player_file, key, config->stats_mineBlock_format);
+        else if (config->stats_killEntity_format && string_startsWith(key, KILLENTITY))
+          print_stat(value, player_file, key, config->stats_killEntity_format);
         DEBUG(255, "Key: %s", key);
       }
       json_decref(json);

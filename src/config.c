@@ -78,6 +78,8 @@ int parse_config(char* filename) {
         ADD_TO_ARRAY(global_config.stats_useItem_format, value);
       } else if (strcmp(key, "stats_mineblock_format") == 0) {
         ADD_TO_ARRAY(global_config.stats_mineBlock_format, value);
+      } else if (strcmp(key, "stats_killentity_format") == 0) {
+        ADD_TO_ARRAY(global_config.stats_killEntity_format, value);
       } else if (strcmp(key, "unbuffered") == 0)
         setvbuf(stdout, NULL, _IONBF, 0);
     }
@@ -134,7 +136,7 @@ int dispatch_config(struct event_base* base) {
       return 1;
     }
   }
-  if ((global_config.stats_useItem_format || global_config.stats_mineBlock_format)
+  if ((global_config.stats_useItem_format || global_config.stats_mineBlock_format || global_config.stats_killEntity_format)
     && snprintf(pathbuf, sizeof(pathbuf), "%s/stats", global_config.world_path)) {
     struct stat sb;
     if (stat(pathbuf, &sb) == 0 && S_ISDIR(sb.st_mode)) {
