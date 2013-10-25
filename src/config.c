@@ -31,6 +31,19 @@
 
 #include <event2/bufferevent.h>
 
+#define ADD_TO_ARRAY(array, value) \
+  if (array == NULL) { \
+    array = malloc(sizeof(char*) * 2); \
+    bzero(array, sizeof(char*) * 2); \
+    array[0] = strdup(value); \
+  } else { \
+    size_t i = 0; \
+    while (array[++i]); \
+    array = realloc(array, sizeof(char*) * (i + 2)); \
+    array[i] = strdup(value); \
+    array[++i] = NULL; \
+  }
+
 static struct config global_config;
 
 int parse_config(char* filename) {
@@ -56,53 +69,15 @@ int parse_config(char* filename) {
           value[slen] = '\0';
         global_config.world_path = strdup(value);
       } else if (strcmp(key, "scoreboard_format") == 0) {
-        if (global_config.scoreboard_format == NULL) {
-          global_config.scoreboard_format = malloc(sizeof(char*) * 2);
-          bzero(global_config.scoreboard_format, sizeof(char*) * 2);
-          global_config.scoreboard_format[0] = strdup(value);
-        } else {
-          size_t i = 0;
-          while (global_config.scoreboard_format[++i]);
-          global_config.scoreboard_format = realloc(global_config.scoreboard_format, sizeof(char*) * (i + 2));
-          global_config.scoreboard_format[i] = strdup(value);
-          global_config.scoreboard_format[++i] = NULL;
-        }
+        ADD_TO_ARRAY(global_config.scoreboard_format, value);
       } else if (strcmp(key, "players_format") == 0) {
-        if (global_config.players_format == NULL) {
-          global_config.players_format = malloc(sizeof(char*) * 2);
-          bzero(global_config.players_format, sizeof(char*) * 2);
-          global_config.players_format[0] = strdup(value);
-        } else {
-          size_t i = 0;
-          while (global_config.players_format[++i]);
-          global_config.players_format = realloc(global_config.players_format, sizeof(char*) * (i + 2));
-          global_config.players_format[i] = strdup(value);
-          global_config.players_format[++i] = NULL;
-        }
+        ADD_TO_ARRAY(global_config.players_format, value);
       } else if (strcmp(key, "level_format") == 0) {
-        if (global_config.level_format == NULL) {
-          global_config.level_format = malloc(sizeof(char*) * 2);
-          bzero(global_config.level_format, sizeof(char*) * 2);
-          global_config.level_format[0] = strdup(value);
-        } else {
-          size_t i = 0;
-          while (global_config.level_format[++i]);
-          global_config.level_format = realloc(global_config.level_format, sizeof(char*) * (i + 2));
-          global_config.level_format[i] = strdup(value);
-          global_config.level_format[++i] = NULL;
-        }
+        ADD_TO_ARRAY(global_config.level_format, value);
       } else if (strcmp(key, "stats_useitem_format") == 0) {
-        if (global_config.stats_useItem_format == NULL) {
-          global_config.stats_useItem_format = malloc(sizeof(char*) * 2);
-          bzero(global_config.stats_useItem_format, sizeof(char*) * 2);
-          global_config.stats_useItem_format[0] = strdup(value);
-        } else {
-          size_t i = 0;
-          while (global_config.stats_useItem_format[++i]);
-          global_config.stats_useItem_format = realloc(global_config.stats_useItem_format, sizeof(char*) * (i + 2));
-          global_config.stats_useItem_format[i] = strdup(value);
-          global_config.stats_useItem_format[++i] = NULL;
-        }
+        ADD_TO_ARRAY(global_config.stats_useItem_format, value);
+      } else if (strcmp(key, "stats_mineblock_format") == 0) {
+        ADD_TO_ARRAY(global_config.stats_mineBlock_format, value);
       } else if (strcmp(key, "unbuffered") == 0)
         setvbuf(stdout, NULL, _IONBF, 0);
     }
@@ -159,7 +134,8 @@ int dispatch_config(struct event_base* base) {
       return 1;
     }
   }
-  if (global_config.stats_useItem_format && snprintf(pathbuf, sizeof(pathbuf), "%s/stats", global_config.world_path)) {
+  if ((global_config.stats_useItem_format || global_config.stats_mineBlock_format)
+    && snprintf(pathbuf, sizeof(pathbuf), "%s/stats", global_config.world_path)) {
     struct stat sb;
     if (stat(pathbuf, &sb) == 0 && S_ISDIR(sb.st_mode)) {
       int wd = inotify_add_watch(inotifyfd, pathbuf, IN_CLOSE_WRITE);
