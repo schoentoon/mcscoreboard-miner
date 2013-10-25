@@ -34,7 +34,7 @@ void print_player(nbt_node* nbt, char* username, char** formats);
 
 void print_level(nbt_node* nbt, char** formats);
 
-void print_stat(json_t* json, char* username, char* key, char** formats);
+void print_stat(json_t* json, char* username, const char* key, char** formats);
 
 void process_scoreboard_data(struct config* config) {
   DEBUG(255, "process_scoreboard_data(%p);", config);
@@ -131,16 +131,25 @@ void process_stats(struct config* config, char* player_file) {
         }
       }
       json_object_foreach(json, key, value) {
+        DEBUG(255, "Key: %s", key);
         static const char* USEITEM = "stat.useItem.";
         static const char* MINEBLOCK = "stat.mineBlock.";
         static const char* KILLENTITY = "stat.killEntity.";
-        if (config->stats_useItem_format && string_startsWith(key, USEITEM))
+        static const char* DAMAGE_DEALT = "stat.damageDealt";
+        static const char* STAT_JUMPED = "stat.jump";
+        static const char* OPEN_INVENTORY = "achievement.openInventory";
+        if (config->stats_useItem_format && string_startsWith((char*) key, (char*) USEITEM))
           print_stat(value, player_file, key, config->stats_useItem_format);
-        else if (config->stats_mineBlock_format && string_startsWith(key, MINEBLOCK))
+        else if (config->stats_mineBlock_format && string_startsWith((char*) key, (char*) MINEBLOCK))
           print_stat(value, player_file, key, config->stats_mineBlock_format);
-        else if (config->stats_killEntity_format && string_startsWith(key, KILLENTITY))
+        else if (config->stats_killEntity_format && string_startsWith((char*) key, (char*) KILLENTITY))
           print_stat(value, player_file, key, config->stats_killEntity_format);
-        DEBUG(255, "Key: %s", key);
+        else if (config->stats_damageDealt_format && strcmp(key, DAMAGE_DEALT) == 0)
+          print_stat(value, player_file, key, config->stats_damageDealt_format);
+        else if (config->stats_jumped_format && strcmp(key, STAT_JUMPED) == 0)
+          print_stat(value, player_file, key, config->stats_jumped_format);
+        else if (config->open_inventory_format &&  strcmp(key, OPEN_INVENTORY) == 0)
+          print_stat(value, player_file, key, config->open_inventory_format);
       }
       json_decref(json);
     } else {
@@ -374,7 +383,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
   }
 };
 
-void print_stat(json_t* json, char* username, char* key, char** formats) {
+void print_stat(json_t* json, char* username, const char* key, char** formats) {
   DEBUG(255, "print_stat(%p, %s, %s, %p);", json, username, key, formats);
   static char* USERNAME = "username";
   static char* ID = "id";

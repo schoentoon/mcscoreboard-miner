@@ -30,6 +30,9 @@ struct config {
   char** stats_useItem_format;
   char** stats_mineBlock_format;
   char** stats_killEntity_format;
+  char** stats_damageDealt_format;
+  char** stats_jumped_format;
+  char** open_inventory_format;
   int data_wd;
   int players_wd;
   int level_wd;
