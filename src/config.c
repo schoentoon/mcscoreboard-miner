@@ -90,6 +90,8 @@ int parse_config(char* filename) {
         ADD_TO_ARRAY(global_config.stats_killedByEntity_format, value);
       } else if (strcmp(key, "stats_craftitem_format") == 0) {
         ADD_TO_ARRAY(global_config.stats_craftItem_format, value);
+      } else if (strcmp(key, "stats_breakitem_format") == 0) {
+        ADD_TO_ARRAY(global_config.stats_breakItem_format, value);
       } else if (strcmp(key, "stats_format") == 0) {
         ADD_TO_ARRAY(global_config.stats_format, value);
       } else if (strcmp(key, "unbuffered") == 0)

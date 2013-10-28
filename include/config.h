@@ -29,6 +29,7 @@ struct config {
   char** level_format;
   char** stats_useItem_format;
   char** stats_mineBlock_format;
+  char** stats_breakItem_format;
   char** stats_killEntity_format;
   char** stats_killedByEntity_format;
   char** stats_craftItem_format;

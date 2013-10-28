@@ -44,6 +44,15 @@ CREATE TABLE minedblock (
 ALTER TABLE ONLY minedblock ADD CONSTRAINT minedblock_pkey PRIMARY KEY ("when", name, block);
 CREATE RULE minedblock_log AS ON INSERT TO minedblock WHERE (EXISTS (SELECT last_entry.mined FROM (SELECT minedblock.mined FROM minedblock WHERE (((minedblock.name)::text = (new.name)::text) AND (minedblock.block = new.block)) ORDER BY minedblock."when" DESC LIMIT 1) last_entry WHERE (last_entry.mined = new.mined))) DO INSTEAD NOTHING;
 
+CREATE TABLE breakitem (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    item integer,
+    times bigint
+);
+ALTER TABLE ONLY breakitem ADD CONSTRAINT breakitem_pkey PRIMARY KEY ("when", name, item);
+CREATE RULE breakitem_log AS ON INSERT TO breakitem WHERE (EXISTS (SELECT last_entry.times FROM (SELECT breakitem.times FROM breakitem WHERE (((breakitem.name)::text = (new.name)::text) AND (breakitem.item = new.item)) ORDER BY breakitem."when" DESC LIMIT 1) last_entry WHERE (last_entry.times = new.times))) DO INSTEAD NOTHING;
+
 CREATE TABLE crafteditem (
     "when" timestamp with time zone DEFAULT now() NOT NULL,
     name character varying(32) NOT NULL,

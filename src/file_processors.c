@@ -137,6 +137,7 @@ void process_stats(struct config* config, char* player_file) {
         static const char* KILLENTITY = "stat.killEntity.";
         static const char* KILLEDBYENTITY = "stat.entityKilledBy.";
         static const char* CRAFTEDITEM = "stat.craftItem.";
+        static const char* BREAKITEM = "stat.breakItem.";
         static const char* STAT = "stat.";
         if (config->stats_useItem_format && string_startsWith((char*) key, (char*) USEITEM))
           print_stat(value, player_file, key, config->stats_useItem_format);
@@ -148,6 +149,8 @@ void process_stats(struct config* config, char* player_file) {
           print_stat(value, player_file, key, config->stats_killedByEntity_format);
         else if (config->stats_craftItem_format && string_startsWith((char*) key, (char*) CRAFTEDITEM))
           print_stat(value, player_file, key, config->stats_craftItem_format);
+        else if (config->stats_breakItem_format && string_startsWith((char*) key, (char*) BREAKITEM))
+          print_stat(value, player_file, key, config->stats_breakItem_format);
         else if (config->stats_format && string_startsWith((char*) key, (char*) STAT))
           print_stat(value, player_file, key, config->stats_format);
       }
