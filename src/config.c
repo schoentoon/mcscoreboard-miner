@@ -46,6 +46,12 @@
 
 static struct config global_config;
 
+unsigned char inited = 0;
+
+int config_is_empty() {
+  return !inited;
+};
+
 int parse_config(char* filename) {
   FILE* f = fopen(filename, "r");
   if (!f) {
@@ -90,6 +96,7 @@ int parse_config(char* filename) {
         setvbuf(stdout, NULL, _IONBF, 0);
     }
   }
+  inited = 1;
   return line_count;
 };
 

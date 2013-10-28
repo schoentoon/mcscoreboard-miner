@@ -43,4 +43,6 @@ int parse_config(char* filename);
 
 int dispatch_config(struct event_base* base);
 
+int config_is_empty();
+
 #endif //_CONFIG_H
