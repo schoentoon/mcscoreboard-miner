@@ -44,6 +44,15 @@ CREATE TABLE minedblock (
 ALTER TABLE ONLY minedblock ADD CONSTRAINT minedblock_pkey PRIMARY KEY ("when", name, block);
 CREATE RULE minedblock_log AS ON INSERT TO minedblock WHERE (EXISTS (SELECT last_entry.mined FROM (SELECT minedblock.mined FROM minedblock WHERE (((minedblock.name)::text = (new.name)::text) AND (minedblock.block = new.block)) ORDER BY minedblock."when" DESC LIMIT 1) last_entry WHERE (last_entry.mined = new.mined))) DO INSTEAD NOTHING;
 
+CREATE TABLE crafteditem (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    item integer,
+    times bigint
+);
+ALTER TABLE ONLY crafteditem ADD CONSTRAINT crafteditem_pkey PRIMARY KEY ("when", name, item);
+CREATE RULE crafteditem_log AS ON INSERT TO crafteditem WHERE (EXISTS (SELECT last_entry.times FROM (SELECT crafteditem.times FROM crafteditem WHERE (((crafteditem.name)::text = (new.name)::text) AND (crafteditem.item = new.item)) ORDER BY crafteditem."when" DESC LIMIT 1) last_entry WHERE (last_entry.times = new.times))) DO INSTEAD NOTHING;
+
 CREATE TABLE kills (
     "when" timestamp with time zone DEFAULT now() NOT NULL,
     name character varying(32) NOT NULL,
@@ -62,34 +71,11 @@ CREATE TABLE killed_by (
 ALTER TABLE ONLY killed_by ADD CONSTRAINT killed_by_pkey PRIMARY KEY ("when", name, entity);
 CREATE RULE killed_by_log AS ON INSERT TO killed_by WHERE (EXISTS (SELECT last_entry.kills FROM (SELECT killed_by.kills FROM killed_by WHERE (((killed_by.name)::text = (new.name)::text) AND ((killed_by.entity)::text = (new.entity)::text)) ORDER BY killed_by."when" DESC LIMIT 1) last_entry WHERE (last_entry.kills = new.kills))) DO INSTEAD NOTHING;
 
-CREATE TABLE damage_dealt (
+CREATE TABLE stats (
     "when" timestamp with time zone DEFAULT now() NOT NULL,
     name character varying(32) NOT NULL,
-    damage bigint
+    stat character varying(32) NOT NULL,
+    count bigint
 );
-ALTER TABLE ONLY damage_dealt ADD CONSTRAINT damage_dealt_pkey PRIMARY KEY ("when", name, damage);
-CREATE RULE damage_dealt_log AS ON INSERT TO damage_dealt WHERE (EXISTS (SELECT last_entry.damage FROM (SELECT damage_dealt.damage FROM damage_dealt WHERE ((damage_dealt.name)::text = (new.name)::text) ORDER BY damage_dealt."when" DESC LIMIT 1) last_entry WHERE (last_entry.damage = new.damage))) DO INSTEAD NOTHING;
-
-CREATE TABLE damage_taken (
-    "when" timestamp with time zone DEFAULT now() NOT NULL,
-    name character varying(32) NOT NULL,
-    damage bigint
-);
-ALTER TABLE ONLY damage_taken ADD CONSTRAINT damage_taken_pkey PRIMARY KEY ("when", name, damage);
-CREATE RULE damage_taken_log AS ON INSERT TO damage_taken WHERE (EXISTS (SELECT last_entry.damage FROM (SELECT damage_taken.damage FROM damage_taken WHERE ((damage_taken.name)::text = (new.name)::text) ORDER BY damage_taken."when" DESC LIMIT 1) last_entry WHERE (last_entry.damage = new.damage))) DO INSTEAD NOTHING;
-
-CREATE TABLE jumps (
-    "when" timestamp with time zone DEFAULT now() NOT NULL,
-    name character varying(32) NOT NULL,
-    jumps bigint
-);
-ALTER TABLE ONLY jumps ADD CONSTRAINT jumps_pkey PRIMARY KEY ("when", name, jumps);
-CREATE RULE jumps_log AS ON INSERT TO jumps WHERE (EXISTS (SELECT last_entry.jumps FROM (SELECT jumps.jumps FROM jumps WHERE ((jumps.name)::text = (new.name)::text) ORDER BY jumps."when" DESC LIMIT 1) last_entry WHERE (last_entry.jumps = new.jumps))) DO INSTEAD NOTHING;
-
-CREATE TABLE open_inventory (
-    "when" timestamp with time zone DEFAULT now() NOT NULL,
-    name character varying(32) NOT NULL,
-    counter bigint
-);
-ALTER TABLE ONLY open_inventory ADD CONSTRAINT open_inventory_pkey PRIMARY KEY ("when", name, counter);
-CREATE RULE open_inventory_log AS ON INSERT TO open_inventory WHERE (EXISTS (SELECT last_entry.counter FROM (SELECT open_inventory.counter FROM open_inventory WHERE ((open_inventory.name)::text = (new.name)::text) ORDER BY open_inventory."when" DESC LIMIT 1) last_entry WHERE (last_entry.counter = new.counter))) DO INSTEAD NOTHING;
+ALTER TABLE ONLY stats ADD CONSTRAINT stats_pkey PRIMARY KEY ("when", name, stat);
+CREATE RULE stats_log AS ON INSERT TO stats WHERE (EXISTS (SELECT last_entry.count FROM (SELECT stats.count FROM stats WHERE (((stats.name)::text = (new.name)::text) AND ((stats.stat)::text = (new.stat)::text)) ORDER BY stats."when" DESC LIMIT 1) last_entry WHERE (last_entry.count = new.count))) DO INSTEAD NOTHING;

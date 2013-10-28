@@ -136,11 +136,8 @@ void process_stats(struct config* config, char* player_file) {
         static const char* MINEBLOCK = "stat.mineBlock.";
         static const char* KILLENTITY = "stat.killEntity.";
         static const char* KILLEDBYENTITY = "stat.entityKilledBy.";
-        static const char* DAMAGE_DEALT = "stat.damageDealt";
-        static const char* DAMAGE_TAKEN = "stat.damageTaken";
-        static const char* STAT_JUMPED = "stat.jump";
-        static const char* OPEN_INVENTORY = "achievement.openInventory";
-        DEBUG(255, "damageDealt array = %p", config->stats_damageDealt_format);
+        static const char* CRAFTEDITEM = "stat.craftItem.";
+        static const char* STAT = "stat.";
         if (config->stats_useItem_format && string_startsWith((char*) key, (char*) USEITEM))
           print_stat(value, player_file, key, config->stats_useItem_format);
         else if (config->stats_mineBlock_format && string_startsWith((char*) key, (char*) MINEBLOCK))
@@ -149,14 +146,10 @@ void process_stats(struct config* config, char* player_file) {
           print_stat(value, player_file, key, config->stats_killEntity_format);
         else if (config->stats_killedByEntity_format && string_startsWith((char*) key, (char*) KILLEDBYENTITY))
           print_stat(value, player_file, key, config->stats_killedByEntity_format);
-        else if (config->stats_damageDealt_format && strcmp(key, DAMAGE_DEALT) == 0)
-          print_stat(value, player_file, key, config->stats_damageDealt_format);
-        else if (config->stats_damageTaken_format && strcmp(key, DAMAGE_TAKEN) == 0)
-          print_stat(value, player_file, key, config->stats_damageTaken_format);
-        else if (config->stats_jumped_format && strcmp(key, STAT_JUMPED) == 0)
-          print_stat(value, player_file, key, config->stats_jumped_format);
-        else if (config->open_inventory_format &&  strcmp(key, OPEN_INVENTORY) == 0)
-          print_stat(value, player_file, key, config->open_inventory_format);
+        else if (config->stats_craftItem_format && string_startsWith((char*) key, (char*) CRAFTEDITEM))
+          print_stat(value, player_file, key, config->stats_craftItem_format);
+        else if (config->stats_format && string_startsWith((char*) key, (char*) STAT))
+          print_stat(value, player_file, key, config->stats_format);
       }
       json_decref(json);
     } else {
