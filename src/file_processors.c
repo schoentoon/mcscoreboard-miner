@@ -135,6 +135,7 @@ void process_stats(struct config* config, char* player_file) {
         static const char* USEITEM = "stat.useItem.";
         static const char* MINEBLOCK = "stat.mineBlock.";
         static const char* KILLENTITY = "stat.killEntity.";
+        static const char* KILLEDBYENTITY = "stat.entityKilledBy.";
         static const char* DAMAGE_DEALT = "stat.damageDealt";
         static const char* DAMAGE_TAKEN = "stat.damageTaken";
         static const char* STAT_JUMPED = "stat.jump";
@@ -146,6 +147,8 @@ void process_stats(struct config* config, char* player_file) {
           print_stat(value, player_file, key, config->stats_mineBlock_format);
         else if (config->stats_killEntity_format && string_startsWith((char*) key, (char*) KILLENTITY))
           print_stat(value, player_file, key, config->stats_killEntity_format);
+        else if (config->stats_killedByEntity_format && string_startsWith((char*) key, (char*) KILLEDBYENTITY))
+          print_stat(value, player_file, key, config->stats_killedByEntity_format);
         else if (config->stats_damageDealt_format && strcmp(key, DAMAGE_DEALT) == 0)
           print_stat(value, player_file, key, config->stats_damageDealt_format);
         else if (config->stats_damageTaken_format && strcmp(key, DAMAGE_TAKEN) == 0)

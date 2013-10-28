@@ -53,6 +53,15 @@ CREATE TABLE kills (
 ALTER TABLE ONLY kills ADD CONSTRAINT kills_pkey PRIMARY KEY ("when", name, entity);
 CREATE RULE kills_log AS ON INSERT TO kills WHERE (EXISTS (SELECT last_entry.kills FROM (SELECT kills.kills FROM kills WHERE (((kills.name)::text = (new.name)::text) AND ((kills.entity)::text = (new.entity)::text)) ORDER BY kills."when" DESC LIMIT 1) last_entry WHERE (last_entry.kills = new.kills))) DO INSTEAD NOTHING;
 
+CREATE TABLE killed_by (
+    "when" timestamp with time zone DEFAULT now() NOT NULL,
+    name character varying(32) NOT NULL,
+    entity character varying(32) NOT NULL,
+    kills bigint
+);
+ALTER TABLE ONLY killed_by ADD CONSTRAINT killed_by_pkey PRIMARY KEY ("when", name, entity);
+CREATE RULE killed_by_log AS ON INSERT TO killed_by WHERE (EXISTS (SELECT last_entry.kills FROM (SELECT killed_by.kills FROM killed_by WHERE (((killed_by.name)::text = (new.name)::text) AND ((killed_by.entity)::text = (new.entity)::text)) ORDER BY killed_by."when" DESC LIMIT 1) last_entry WHERE (last_entry.kills = new.kills))) DO INSTEAD NOTHING;
+
 CREATE TABLE damage_dealt (
     "when" timestamp with time zone DEFAULT now() NOT NULL,
     name character varying(32) NOT NULL,

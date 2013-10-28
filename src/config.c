@@ -80,6 +80,8 @@ int parse_config(char* filename) {
         ADD_TO_ARRAY(global_config.stats_mineBlock_format, value);
       } else if (strcmp(key, "stats_killentity_format") == 0) {
         ADD_TO_ARRAY(global_config.stats_killEntity_format, value);
+      } else if (strcmp(key, "stats_killedbyentity_format") == 0) {
+        ADD_TO_ARRAY(global_config.stats_killedByEntity_format, value);
       } else if (strcmp(key, "stats_damagedealt_format") == 0) {
         ADD_TO_ARRAY(global_config.stats_damageDealt_format, value);
       } else if (strcmp(key, "stats_damagetaken_format") == 0) {
