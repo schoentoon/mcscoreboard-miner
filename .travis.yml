@@ -4,7 +4,14 @@ compiler:
   - clang
 before_install:
   - sudo apt-get update -qq >/dev/null 2>&1
-  - sudo apt-get install -qq libevent-dev libjansson-dev >/dev/null 2>&1
+  - sudo apt-get install -qq libevent-dev >/dev/null 2>&1
+  - git clone https://github.com/akheron/jansson.git
+  - cd jansson
+  - autoreconf -i
+  - ./configure
+  - make
+  - sudo make install
+  - cd -
   - pkg-config --modversion jansson
   - pkg-config --modversion libevent
 script:
