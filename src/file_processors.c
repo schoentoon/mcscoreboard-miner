@@ -411,15 +411,18 @@ void print_stat(json_t* json, char* username, const char* key, char** formats) {
             f += 4;
           }
         } else if (string_startsWith(f, ID)) {
-          size_t dot, i = 0;
+          size_t dot = 0;
+          size_t i = 0;
           for (i = 0; key[i]; i++) {
             if (key[i] == '.')
               dot = i + 1;
           }
-          snprintf(buf, end - buf, "%s", &key[dot]);
-          while (*buf != '\0')
-            buf++;
-          f += 1;
+          if (dot > 0) {
+            snprintf(buf, end - buf, "%s", &key[dot]);
+            while (*buf != '\0')
+              buf++;
+            f += 1;
+          }
         }
       } else if (buf < end) {
         if (*f == '\\') {
