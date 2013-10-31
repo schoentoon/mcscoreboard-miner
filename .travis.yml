@@ -16,6 +16,7 @@ before_install:
   - pkg-config --modversion libevent
 script:
   - make CC=$CC
+  - make CC=$CC -C contrib/weather_dot_json
 notifications:
   irc:
     channels:
