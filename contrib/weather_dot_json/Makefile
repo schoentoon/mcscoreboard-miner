@@ -11,7 +11,7 @@ weather_dot_json: main.c
 	$(CC) $(CFLAGS) main.c -o $(BINARY) $(LFLAGS)
 
 install:
-	cp -fv bin/$(BINARY) /usr/local/bin/$(BINARY)
+	cp -fv $(BINARY) /usr/local/bin/$(BINARY)
 
 clean:
 	rm $(BINARY)
