@@ -94,6 +94,9 @@ int parse_config(char* filename) {
         ADD_TO_ARRAY(global_config.stats_breakItem_format, value);
       } else if (strcmp(key, "stats_format") == 0) {
         ADD_TO_ARRAY(global_config.stats_format, value);
+      } else if (strcmp(key, "exec") == 0) {
+        free(global_config.pipe_to);
+        global_config.pipe_to = strdup(value);
       } else if (strcmp(key, "unbuffered") == 0)
         setvbuf(stdout, NULL, _IONBF, 0);
     }
@@ -165,6 +168,35 @@ int dispatch_config(struct event_base* base) {
     } else {
       fprintf(stderr, "There was an error monitoring '%s', error: '%s'\n", pathbuf, strerror(errno));
       return 1;
+    }
+  }
+  if (global_config.pipe_to) {
+    int pipes[2];
+    if (pipe(pipes) == -1) {
+      fprintf(stderr, "Could not create pipe :( '%s'\n", strerror(errno));
+      return 1;
+    }
+    pid_t pid = fork();
+    switch (pid) {
+    case -1:
+      fprintf(stderr, "Couldn't fork :( '%s'\n", strerror(errno));
+      return 1;
+    case 0:
+      close(fileno(stdin));
+      dup(pipes[0]);
+      close(pipes[1]);
+      close(pipes[0]);
+      const char *argv[] = { "sh", "-c", global_config.pipe_to, NULL };
+      execvp("/bin/sh", (char * const *) argv);
+      fprintf(stderr, "execvp failed\n");
+      exit(EXIT_FAILURE);
+      break;
+    default:
+      close(fileno(stdout));
+      dup(pipes[1]);
+      close(pipes[0]);
+      close(pipes[1]);
+      break;
     }
   }
   return 0;

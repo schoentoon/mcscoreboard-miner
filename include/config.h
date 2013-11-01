@@ -34,6 +34,7 @@ struct config {
   char** stats_killedByEntity_format;
   char** stats_craftItem_format;
   char** stats_format;
+  char* pipe_to;
   int data_wd;
   int players_wd;
   int level_wd;
