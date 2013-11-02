@@ -231,7 +231,7 @@ int dispatch_config(struct event_base* base) {
   if (global_config.pidfile) {
     FILE *f;
     int fd;
-    if (((fd = open(global_config.pidfile, O_RDWR|O_CREAT, 0644)) == -1) || ((f = fdopen(fd, "r+")) == NULL) ) {
+    if (((fd = open(global_config.pidfile, O_RDWR|O_CREAT|O_TRUNC, 0644)) == -1) || ((f = fdopen(fd, "r+")) == NULL) ) {
       fprintf(stderr, "Can't open or create %s.\n", global_config.pidfile);
       return 1;
     }
