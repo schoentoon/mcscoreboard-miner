@@ -21,12 +21,14 @@
 
 #include <errno.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
 #include <string.h>
 #include <strings.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/inotify.h>
 
 #include <event2/bufferevent.h>
@@ -50,6 +52,10 @@ unsigned char inited = 0;
 
 int config_is_empty() {
   return !inited;
+};
+
+int should_daemonize() {
+  return global_config.daemon;
 };
 
 int parse_config(char* filename) {
@@ -97,7 +103,14 @@ int parse_config(char* filename) {
       } else if (strcmp(key, "exec") == 0) {
         free(global_config.pipe_to);
         global_config.pipe_to = strdup(value);
-      } else if (strcmp(key, "unbuffered") == 0)
+      } else if (strcmp(key, "pidfile") == 0) {
+        free(global_config.pidfile);
+        global_config.pidfile = strdup(value);
+      }
+    } else if (sscanf(linebuffer, "%[a-z_]", key) == 1) {
+      if (strcmp(key, "daemon") == 0)
+        global_config.daemon = 1;
+      else if (strcmp(key, "unbuffered") == 0)
         setvbuf(stdout, NULL, _IONBF, 0);
     }
   }
@@ -198,6 +211,23 @@ int dispatch_config(struct event_base* base) {
       close(pipes[1]);
       break;
     }
+  }
+  if (global_config.pidfile) {
+    FILE *f;
+    int fd;
+    if (((fd = open(global_config.pidfile, O_RDWR|O_CREAT, 0644)) == -1) || ((f = fdopen(fd, "r+")) == NULL) ) {
+      fprintf(stderr, "Can't open or create %s.\n", global_config.pidfile);
+      return 1;
+    }
+
+    int pid = getpid();
+    if (!fprintf(f,"%d", pid)) {
+      fprintf(stderr, "Can't write pid , '%s'.\n", strerror(errno));
+      close(fd);
+      return 1;
+    }
+    fclose(f);
+    close(fd);
   }
   return 0;
 };

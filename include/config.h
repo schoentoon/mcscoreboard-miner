@@ -35,6 +35,8 @@ struct config {
   char** stats_craftItem_format;
   char** stats_format;
   char* pipe_to;
+  char* pidfile;
+  unsigned char daemon;
   int data_wd;
   int players_wd;
   int level_wd;
@@ -46,5 +48,7 @@ int parse_config(char* filename);
 int dispatch_config(struct event_base* base);
 
 int config_is_empty();
+
+int should_daemonize();
 
 #endif //_CONFIG_H

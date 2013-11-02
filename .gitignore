@@ -21,3 +21,4 @@ bin/
 
 *.config
 !sample.config
+*.pid

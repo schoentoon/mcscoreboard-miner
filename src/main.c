@@ -24,6 +24,7 @@
 #include <getopt.h>
 #include <signal.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <event.h>
 
@@ -130,6 +131,14 @@ int main(int argc, char** argv) {
   }
   if (config_is_empty())
     return usage(argv[0]);
+  if (should_daemonize()) {
+    pid_t pid = fork();
+    if (pid == -1) {
+      fprintf(stderr, "There was a problem while forking to the background :( '%s'\n", strerror(errno));
+      return 1;
+    } else if (pid > 0)
+      return 0;
+  }
   struct event_base* event_base = event_base_new();
   if (dispatch_config(event_base) == 0)
     while (event_base_dispatch(event_base) == 0);
