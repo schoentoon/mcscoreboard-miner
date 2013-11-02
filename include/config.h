@@ -18,6 +18,8 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+#include <unistd.h>
+
 #include <event2/dns.h>
 #include <event2/event.h>
 #include <event2/event_struct.h>
@@ -37,6 +39,7 @@ struct config {
   char* pipe_to;
   char* pidfile;
   unsigned char daemon;
+  pid_t pid_child;
   int data_wd;
   int players_wd;
   int level_wd;

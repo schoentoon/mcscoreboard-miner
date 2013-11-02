@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <string.h>
+#include <signal.h>
 #include <strings.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -118,6 +119,12 @@ int parse_config(char* filename) {
   return line_count;
 };
 
+void signal_handler(int signal) {
+  kill(global_config.pid_child, signal);
+  if (signal == SIGTERM)
+    exit(0);
+};
+
 int dispatch_config(struct event_base* base) {
   int inotifyfd = inotify_init();
   if (inotifyfd == -1)
@@ -205,6 +212,15 @@ int dispatch_config(struct event_base* base) {
       exit(EXIT_FAILURE);
       break;
     default:
+      global_config.pid_child = pid;
+      struct sigaction sa;
+      sa.sa_flags = 0;
+      sigemptyset(&sa.sa_mask);
+      sa.sa_handler = signal_handler;
+      sigaction(SIGTERM,  &sa, (struct sigaction*) NULL);
+      sigaction(SIGHUP,  &sa, (struct sigaction*) NULL);
+      sigaction(SIGUSR1, &sa, (struct sigaction*) NULL);
+      sigaction(SIGUSR2, &sa, (struct sigaction*) NULL);
       close(fileno(stdout));
       dup(pipes[1]);
       close(pipes[0]);
