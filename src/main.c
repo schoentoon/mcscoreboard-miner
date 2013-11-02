@@ -20,11 +20,14 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <event.h>
 
@@ -136,8 +139,15 @@ int main(int argc, char** argv) {
     if (pid == -1) {
       fprintf(stderr, "There was a problem while forking to the background :( '%s'\n", strerror(errno));
       return 1;
-    } else if (pid > 0)
+    } else if (pid > 0) {
+      close(0);
+      open("/dev/null", O_RDONLY);
+      close(1);
+      open("/dev/null", O_WRONLY);
+      close(2);
+      open("/dev/null", O_WRONLY);
       return 0;
+    }
   }
   struct event_base* event_base = event_base_new();
   if (dispatch_config(event_base) == 0)
