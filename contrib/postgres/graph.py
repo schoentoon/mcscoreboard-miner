@@ -1,22 +1,34 @@
 #!/usr/bin/python
 
+import sys
 import psycopg2
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter, MinuteLocator
-import config
+import argparse
 
-conn = psycopg2.connect(database="schoentoon")
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--database", help="what database to connect to", type=str, required=True)
+parser.add_argument("-o", "--output", help="write to this file", type=str, required=True)
+parser.add_argument("blocks", nargs="*", help="Block ids", default=[], type=int)
+parser.add_argument("--title", type=str)
+args = parser.parse_args()
+
+conn = psycopg2.connect(database=args.database)
 cur = conn.cursor()
-cur.execute("""SELECT \"when\", mined
-               FROM minedblock
-               WHERE block = 1
-               AND \"when\" > now() - interval '1 day'""")
-times, counter = zip(*cur.fetchall())
+
+for block in args.blocks:
+  cur.execute("""SELECT \"when\", mined
+                FROM minedblock
+                WHERE block = %d
+                AND \"when\" > now() - interval '1 day'""" % (block))
+  times, counter = zip(*cur.fetchall())
+  plt.plot(times, counter)
+
 cur.close()
 conn.close()
 
-plt.plot(times, counter)
 plt.grid()
-plt.title("Mined stone for the past 24 hours.")
+if args.title:
+  plt.title(args.title)
 plt.gca().xaxis.set_major_formatter(DateFormatter('%H'))
-plt.savefig("stone.png")
+plt.savefig(args.output)
