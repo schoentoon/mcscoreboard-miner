@@ -2,6 +2,10 @@
 
 import sys
 import psycopg2
+import matplotlib
+
+matplotlib.use('Agg') # Force it to not use Xwindows so it can be ran headless http://stackoverflow.com/a/3054314
+
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter, MinuteLocator
 import argparse
