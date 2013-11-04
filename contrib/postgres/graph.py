@@ -22,20 +22,26 @@ conn = psycopg2.connect(database=args.database)
 cur = conn.cursor()
 
 for block in args.minedblocks:
-  cur.execute("""SELECT \"when\", mined
-                FROM minedblock
-                WHERE block = %d
-                AND \"when\" > now() - interval '1 day'""" % (block))
-  times, counter = zip(*cur.fetchall())
-  plt.plot(times, counter)
+  try:
+    cur.execute("""SELECT \"when\", mined
+                  FROM minedblock
+                  WHERE block = %d
+                  AND \"when\" > now() - interval '1 day'""" % (block))
+    times, counter = zip(*cur.fetchall())
+    plt.plot(times, counter)
+  except:
+    pass
 
 for stat in args.stat:
-  cur.execute("""SELECT \"when\", count
-                 FROM stats
-                 WHERE stat = '%s'
-                 AND \"when\" > now() - interval '1 day'""" % (stat))
-  times, counter = zip(*cur.fetchall())
-  plt.plot(times, counter)
+  try:
+    cur.execute("""SELECT \"when\", count
+                   FROM stats
+                   WHERE stat = '%s'
+                   AND \"when\" > now() - interval '1 day'""" % (stat))
+    times, counter = zip(*cur.fetchall())
+    plt.plot(times, counter)
+  except:
+    pass
 
 cur.close()
 conn.close()
