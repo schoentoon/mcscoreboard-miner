@@ -15,6 +15,7 @@ parser.add_argument("-d", "--database", help="what database to connect to", type
 parser.add_argument("-o", "--output", help="write to this file", type=str, required=True)
 parser.add_argument("-mb", "--minedblocks", nargs="*", help="mined block ids", default=[], type=int)
 parser.add_argument("-s", "--stat", nargs="*", help="the misc stats", default=[], type=str)
+parser.add_argument("-u", "--username", help="only select data from this username (multiplayer)", type=str)
 parser.add_argument("--title", type=str)
 args = parser.parse_args()
 
@@ -26,7 +27,8 @@ for block in args.minedblocks:
     cur.execute("""SELECT \"when\", mined
                   FROM minedblock
                   WHERE block = %d
-                  AND \"when\" > now() - interval '1 day'""" % (block))
+                  %s
+                  AND \"when\" > now() - interval '1 day'""" % (block, ("AND name = '%s'" % (args.username) if args.username else "" )))
     times, counter = zip(*cur.fetchall())
     plt.plot(times, counter)
   except:
@@ -37,7 +39,8 @@ for stat in args.stat:
     cur.execute("""SELECT \"when\", count
                    FROM stats
                    WHERE stat = '%s'
-                   AND \"when\" > now() - interval '1 day'""" % (stat))
+                   %s
+                   AND \"when\" > now() - interval '1 day'""" % (stat, ("AND name = '%s'" % (args.username) if args.username else "" )))
     times, counter = zip(*cur.fetchall())
     plt.plot(times, counter)
   except:
