@@ -16,6 +16,8 @@ parser.add_argument("-o", "--output", help="write to this file", type=str, requi
 parser.add_argument("-mb", "--minedblocks", nargs="*", help="mined block ids", default=[], type=int)
 parser.add_argument("-s", "--stat", nargs="*", help="the misc stats", default=[], type=str)
 parser.add_argument("-u", "--username", help="only select data from this username (multiplayer)", type=str)
+parser.add_argument("--since", help="start timestamp (directly passed to the database so read the PostgreSQL documentation regarding timestamps)", type=str, default="now() - interval '1 day'")
+parser.add_argument("--till", help="select until this timestamp, example \"'1 november 2012 00:00'\"", type=str, default="now()")
 parser.add_argument("--title", type=str)
 args = parser.parse_args()
 
@@ -28,11 +30,11 @@ for block in args.minedblocks:
                   FROM minedblock
                   WHERE block = %d
                   %s
-                  AND \"when\" > now() - interval '1 day'""" % (block, ("AND name = '%s'" % (args.username) if args.username else "" )))
+                  AND \"when\" between (%s) and (%s)""" % (block, ("AND name = '%s'" % (args.username) if args.username else ""), args.since, args.till))
     times, counter = zip(*cur.fetchall())
     plt.plot(times, counter)
-  except:
-    pass
+  except Exception as e:
+    print e
 
 for stat in args.stat:
   try:
@@ -40,11 +42,11 @@ for stat in args.stat:
                    FROM stats
                    WHERE stat = '%s'
                    %s
-                   AND \"when\" > now() - interval '1 day'""" % (stat, ("AND name = '%s'" % (args.username) if args.username else "" )))
+                   AND \"when\" between (%s) and (%s)""" % (stat, ("AND name = '%s'" % (args.username) if args.username else ""), args.since, args.till))
     times, counter = zip(*cur.fetchall())
     plt.plot(times, counter)
-  except:
-    pass
+  except Exception as e:
+    print e
 
 cur.close()
 conn.close()
