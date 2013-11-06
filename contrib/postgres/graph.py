@@ -15,6 +15,8 @@ parser.add_argument("-d", "--database", help="what database to connect to", type
 parser.add_argument("-o", "--output", help="write to this file", type=str, required=True)
 parser.add_argument("-mb", "--minedblocks", nargs="*", help="mined block id", default=[], type=int)
 parser.add_argument("-ci", "--crafteditem", nargs="*", help="crafted item id", default=[], type=int)
+parser.add_argument("-bi", "--breakitem", nargs="*", help="broken item id", default=[], type=int)
+parser.add_argument("-ui", "--useitem", nargs="*", help="used item id", default=[], type=int)
 parser.add_argument("-s", "--stat", nargs="*", help="the misc stats", default=[], type=str)
 parser.add_argument("-u", "--username", help="only select data from this username (multiplayer)", type=str)
 parser.add_argument("--since", help="start timestamp (directly passed to the database so read the PostgreSQL documentation regarding timestamps)", type=str, default="now() - interval '1 day'")
@@ -41,6 +43,30 @@ for item in args.crafteditem:
   try:
     cur.execute("""SELECT \"when\", times
                   FROM crafteditem
+                  WHERE item = %d
+                  %s
+                  AND \"when\" between (%s) and (%s)""" % (item, ("AND name = '%s'" % (args.username) if args.username else ""), args.since, args.till))
+    times, counter = zip(*cur.fetchall())
+    plt.plot(times, counter)
+  except Exception as e:
+    print e
+
+for item in args.breakitem:
+  try:
+    cur.execute("""SELECT \"when\", times
+                  FROM breakitem
+                  WHERE item = %d
+                  %s
+                  AND \"when\" between (%s) and (%s)""" % (item, ("AND name = '%s'" % (args.username) if args.username else ""), args.since, args.till))
+    times, counter = zip(*cur.fetchall())
+    plt.plot(times, counter)
+  except Exception as e:
+    print e
+
+for item in args.useitem:
+  try:
+    cur.execute("""SELECT \"when\", uses
+                  FROM useitems
                   WHERE item = %d
                   %s
                   AND \"when\" between (%s) and (%s)""" % (item, ("AND name = '%s'" % (args.username) if args.username else ""), args.since, args.till))
