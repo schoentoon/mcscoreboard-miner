@@ -22,6 +22,7 @@ parser.add_argument("-u", "--username", help="only select data from this usernam
 parser.add_argument("--since", help="start timestamp (directly passed to the database so read the PostgreSQL documentation regarding timestamps)", type=str, default="now() - interval '1 day'")
 parser.add_argument("--till", help="select until this timestamp, example \"'1 november 2012 00:00'\"", type=str, default="now()")
 parser.add_argument("--title", type=str)
+parser.add_argument("--dpi", type=int, default=100)
 args = parser.parse_args()
 
 conn = psycopg2.connect(database=args.database)
@@ -94,4 +95,4 @@ plt.grid()
 if args.title:
   plt.title(args.title)
 plt.gca().xaxis.set_major_formatter(DateFormatter('%H'))
-plt.savefig(args.output)
+plt.savefig(args.output, dpi=args.dpi)
