@@ -23,8 +23,8 @@ parser.add_argument("--since", help="start timestamp (directly passed to the dat
 parser.add_argument("--till", help="select until this timestamp, example \"'1 november 2012 00:00'\"", type=str, default="now()")
 parser.add_argument("--title", type=str)
 parser.add_argument("--dpi", type=int, default=100)
+parser.add_argument("--size", nargs=2, type=float)
 args = parser.parse_args()
-
 conn = psycopg2.connect(database=args.database)
 cur = conn.cursor()
 
@@ -95,4 +95,6 @@ plt.grid()
 if args.title:
   plt.title(args.title)
 plt.gca().xaxis.set_major_formatter(DateFormatter('%H'))
+if args.size:
+  plt.gcf().set_size_inches(args.size[0], args.size[1])
 plt.savefig(args.output, dpi=args.dpi)
