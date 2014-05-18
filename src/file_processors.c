@@ -116,7 +116,7 @@ void process_stats(struct config* config, char* player_file) {
   DEBUG(255, "process_stats(%p, %s);", config, player_file);
   json_t *json;
   json_error_t error;
-  char pathbuf[strlen(config->world_path) + 64];
+  char pathbuf[strlen(config->world_path) + strlen(player_file) + 64];
   if (snprintf(pathbuf, sizeof(pathbuf), "%s/stats/%s", config->world_path, player_file)) {
     DEBUG(255, "pathbuf: %s", pathbuf);
     json = json_load_file(pathbuf, 0, &error);
@@ -199,13 +199,13 @@ void print_objective_score(nbt_node* nbt, char** formats) {
           nbt_node* tmp = FIND_NBT_NODE(name, Name);
           if (tmp && tmp->type == TAG_STRING) {
             APPEND(tmp->payload.tag_string);
-            f += 3;
+            f += 3; // length of name -1 as we already were at the first character
           }
         } else if (string_startsWith(f, objective)) {
           nbt_node* tmp = FIND_NBT_NODE(objective, Objective);
           if (tmp && tmp->type == TAG_STRING) {
             APPEND(tmp->payload.tag_string);
-            f += 8;
+            f += 8; // length of objective -1 as we already were at the first character
           }
         } else if (string_startsWith(f, score)) {
           nbt_node* tmp = FIND_NBT_NODE(score, Score);
@@ -213,7 +213,7 @@ void print_objective_score(nbt_node* nbt, char** formats) {
             snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
             while (*buf != '\0')
               buf++;
-            f += 4;
+            f += 4; // length of score -1 as we already were at the first character
           }
         }
       } else if (buf < end) {
@@ -276,7 +276,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             snprintf(buf, end - buf, "%f", total);
             while (*buf != '\0')
               buf++;
-            f += 6;
+            f += 6; // length of xplevel -1 as we already were at the first character
           }
         } else if (string_startsWith(f, level)) {
           nbt_node* tmp = FIND_NBT_NODE(level, XpLevel);
@@ -284,7 +284,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
             while (*buf != '\0')
               buf++;
-            f += 4;
+            f += 4; // length of level -1 as we already were at the first character
           }
         } else if (string_startsWith(f, xp)) {
           nbt_node* tmp = FIND_NBT_NODE(xp, XpP);
@@ -292,7 +292,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             snprintf(buf, end - buf, "%f", tmp->payload.tag_float);
             while (*buf != '\0')
               buf++;
-            f += 1;
+            f += 1; // length of xp -1 as we already were at the first character
           }
         } else if (string_startsWith(f, health)) {
           nbt_node* tmp = FIND_NBT_NODE(health, Health);
@@ -300,7 +300,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             snprintf(buf, end - buf, "%d", tmp->payload.tag_short);
             while (*buf != '\0')
               buf++;
-            f += 5;
+            f += 5; // length of health -1 as we already were at the first character
           }
         } else if (string_startsWith(f, food)) {
           nbt_node* tmp = FIND_NBT_NODE(food, foodLevel);
@@ -308,7 +308,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
             while (*buf != '\0')
               buf++;
-            f += 3;
+            f += 3; // length of food -1 as we already were at the first character
           }
         } else if (string_startsWith(f, score)) {
           nbt_node* tmp = FIND_NBT_NODE(score, Score);
@@ -316,7 +316,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             snprintf(buf, end - buf, "%d", tmp->payload.tag_int);
             while (*buf != '\0')
               buf++;
-            f += 4;
+            f += 4; // length of score -1 as we already were at the first character
           }
         } else if (string_startsWith(f, POSX)) {
           nbt_node* tmp = FIND_NBT_NODE(pos, Pos);
@@ -326,7 +326,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
               snprintf(buf, end - buf, "%f", pos->payload.tag_double);
               while (*buf != '\0')
                 buf++;
-              f+= 3;
+              f+= 3; // length of posx -1 as we already were at the first character
             }
           }
         } else if (string_startsWith(f, POSY)) {
@@ -337,7 +337,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
               snprintf(buf, end - buf, "%f", pos->payload.tag_double);
               while (*buf != '\0')
                 buf++;
-              f+= 3;
+              f+= 3; // length of posy -1 as we already were at the first character
             }
           }
         } else if (string_startsWith(f, POSZ)) {
@@ -348,7 +348,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
               snprintf(buf, end - buf, "%f", pos->payload.tag_double);
               while (*buf != '\0')
                 buf++;
-              f+= 3;
+              f+= 3; // length of posz -1 as we already were at the first character
             }
           }
         } else if (string_startsWith(f, absorption)) {
@@ -357,7 +357,7 @@ void print_player(nbt_node* nbt, char* username, char** formats) {
             snprintf(buf, end - buf, "%f", tmp->payload.tag_float);
             while (*buf != '\0')
               buf++;
-            f += 9;
+            f += 9; // length of absorption -1 as we already were at the first character
           }
         }
       } else if (buf < end) {
@@ -408,7 +408,7 @@ void print_stat(json_t* json, char* username, const char* key, char** formats) {
             snprintf(buf, end - buf, "%lld", json_integer_value(json));
             while (*buf != '\0')
               buf++;
-            f += 4;
+            f += 4; // length of value -1 as we already were at the first character
           }
         } else if (string_startsWith(f, ID)) {
           size_t dot = 0;
@@ -421,7 +421,7 @@ void print_stat(json_t* json, char* username, const char* key, char** formats) {
             snprintf(buf, end - buf, "%s", &key[dot]);
             while (*buf != '\0')
               buf++;
-            f += 1;
+            f += 1; // length of id -1 as we already were at the first character
           }
         }
       } else if (buf < end) {
@@ -472,7 +472,7 @@ void print_level(nbt_node* nbt, char** formats) {
             snprintf(buf, end - buf, "%ld", tmp->payload.tag_long);
             while (*buf != '\0')
               buf++;
-            f += 3;
+            f += 3; // length of seed -1 as we already were at the first character
           }
         } else if (string_startsWith(f, timeday)) {
           nbt_node* tmp = FIND_NBT_NODE(daytime, DayTime);
@@ -480,7 +480,7 @@ void print_level(nbt_node* nbt, char** formats) {
             snprintf(buf, end - buf, "%ld", tmp->payload.tag_long % 24000);
             while (*buf != '\0')
               buf++;
-            f += 6;
+            f += 6; // length of timeday -1 as we already were at the first character
           }
         } else if (string_startsWith(f, time)) {
           nbt_node* tmp = FIND_NBT_NODE(time, Time);
@@ -488,7 +488,7 @@ void print_level(nbt_node* nbt, char** formats) {
             snprintf(buf, end - buf, "%ld", tmp->payload.tag_long);
             while (*buf != '\0')
               buf++;
-            f += 3;
+            f += 3; // length of time -1 as we already were at the first character
           }
         } else if (string_startsWith(f, daytime)) {
           nbt_node* tmp = FIND_NBT_NODE(daytime, DayTime);
@@ -496,7 +496,7 @@ void print_level(nbt_node* nbt, char** formats) {
             snprintf(buf, end - buf, "%ld", tmp->payload.tag_long);
             while (*buf != '\0')
               buf++;
-            f += 6;
+            f += 6; // length of daytime -1 as we already were at the first character
           }
         } else if (string_startsWith(f, raining)) {
           nbt_node* tmp = FIND_NBT_NODE(raining, raining);
@@ -504,7 +504,7 @@ void print_level(nbt_node* nbt, char** formats) {
             snprintf(buf, end - buf, "%s", (tmp->payload.tag_byte == 1) ? "true" : "false");
             while (*buf != '\0')
               buf++;
-            f += 6;
+            f += 6; // length of raining -1 as we already were at the first character
           }
         } else if (string_startsWith(f, thundering)) {
           nbt_node* tmp = FIND_NBT_NODE(thundering, thundering);
@@ -512,7 +512,7 @@ void print_level(nbt_node* nbt, char** formats) {
             snprintf(buf, end - buf, "%s", (tmp->payload.tag_byte == 1) ? "true" : "false");
             while (*buf != '\0')
               buf++;
-            f += 9;
+            f += 9; // length of thundering -1 as we already were at the first character
           }
         }
       } else if (buf < end) {
