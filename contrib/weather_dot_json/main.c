@@ -1,5 +1,5 @@
 /*  mcscoreboard-miner
- *  Copyright (C) 2013  Toon Schoenmakers
+ *  Copyright (C) 2013-2014  Toon Schoenmakers
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,9 +51,10 @@ int main(int argc, char** argv) {
   }
   ssize_t n;
   char buff[BUFSIZ];
-  while ((n = read(fileno(stdin), buff, sizeof(buff))) > 0) {
+  int in = fileno(stdin);
+  while ((n = read(in, buff, sizeof(buff))) > 0) {
     long daytime;
-    char thunder[6];
+    char thunder[6]; // false + '\0' is 6 characters long ;)
     char rain[6];
     if (sscanf(buff, "%ld %5s %5s", &daytime, thunder, rain) == 3) {
       json_t* json = json_object();
@@ -65,9 +66,8 @@ int main(int argc, char** argv) {
           src = json_string((daytime%24000) < 12000 ? "weather/weather_stormy_day.png" : "weather/weather_stormy_night.png");
         else
           src = json_string((daytime%24000) < 12000 ? "weather/weather_sunny_day.png" : "weather/weather_sunny_night.png");
-        if (src && json_object_set(json, "src", src) == 0) {
+        if (src && json_object_set(json, "src", src) == 0)
           json_dump_file(json, output, 0);
-        }
         json_decref(json);
       }
     }
